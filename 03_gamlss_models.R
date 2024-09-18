@@ -2,6 +2,7 @@ library(dplyr)
 library(tidyr)
 library(janitor)
 library(gamlss)
+library(ggplot2)
 
 # Reading and manipulating the data -------------------------------------------
 ## Reading a table with auxiliary data for the municipalities
@@ -183,7 +184,6 @@ df_variacao <- df_newdata_completo |>
   mutate(variacao = (predicoes - lag(predicoes))) |>
   summarise(variacao_media = round(mean(variacao, na.rm = T), 3)) |>
   arrange(idhm, pandemia)
-
 df_variacao
 
 ### Plotting a similar information
@@ -202,6 +202,7 @@ plot_variacao <- ggplot(
   ) +
   theme_bw() +
   theme(legend.position = "top")
+plot_variacao
 
 ### Exporting the plot
 ggsave(
