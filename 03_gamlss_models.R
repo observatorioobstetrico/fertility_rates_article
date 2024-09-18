@@ -161,7 +161,7 @@ coberturas_ab <- seq(0, 100, by = 10)
 
 df_newdata <- expand.grid(idhms, anos, coberturas_ab) |>
   arrange(Var1) |>
-  mutate(pandemia = factor(ifelse(Var2 < 2020, "não", "sim"), levels = c("não", "sim")))
+  mutate(pandemia = factor(ifelse(Var2 < 2020, "before", "after"), levels = c("before", "after")))
 
 colnames(df_newdata) <- c("idhm", "ano", "cobertura_ab", "pandemia")
 
