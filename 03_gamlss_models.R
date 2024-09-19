@@ -201,7 +201,7 @@ plot_variacao <- ggplot(
     linetype = "COVID-19 pandemic"
   ) +
   theme_bw() +
-  theme(legend.position = "top")
+  theme(legend.position = "bottom")
 plot_variacao
 
 ### Exporting the plot

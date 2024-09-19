@@ -562,7 +562,7 @@ plot_clusters_10_a_14 <- ggplot() +
   scale_fill_viridis_d(name = "Groups", end = 0.8, alpha = 0.6, direction = -1) +
   geom_sf(data = df_ufs_sf, fill = NA, linewidth = 0.08, color = "black") +
   theme_bw() +
-  theme(legend.position = "top") 
+  theme(legend.position = "bottom") 
 
 ##### Exporting the plot
 ggsave(
@@ -579,7 +579,7 @@ plot_clusters_15_a_19 <- ggplot() +
   scale_fill_viridis_d(name = "Groups", end = 0.8, alpha = 0.6, direction = -1) +
   geom_sf(data = df_ufs_sf, fill = NA, linewidth = 0.08, color = "black") +
   theme_bw() +
-  theme(legend.position = "top")
+  theme(legend.position = "bottom")
 
 ##### Exporting the plot
 ggsave(

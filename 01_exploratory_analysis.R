@@ -77,7 +77,7 @@ plot_br_time_series <- ggplot(data = df_fecundidade_br_unico, mapping = aes(x = 
     y = "Fertility rate"
   ) +
   geom_text(label = df_fecundidade_br_unico$tx_fecundidade, nudge_y = 2, show.legend = FALSE) +
-  theme(legend.position = "top") +
+  theme(legend.position = "bottom") +
   scale_color_manual(values = c("Salmon", "DodgerBlue"))
 
 ## Exporting the plot
