@@ -546,62 +546,45 @@ df_ufs_sf <- read_state(year = 2019, showProgress = FALSE)
 
 ### Joining the geometry and the clustering data for each period
 df_dados_mapa_18_19 <- left_join(df_indicadores_18_19, df_muni_sf) |>
-  st_as_sf()
+  mutate(periodo = "2018-2019") 
 
 df_dados_mapa_20_21 <- left_join(df_indicadores_20_21, df_muni_sf) |>
+  mutate(periodo = "2020-2021") 
+
+df_dados_mapa_completo <- full_join(df_dados_mapa_18_19, df_dados_mapa_20_21) |>
   st_as_sf()
 
 ### Plotting the maps
 #### For the 10 to 14 age group
-plot_clusters_10_a_14_1 <- ggplot() +
-  geom_sf(data = df_dados_mapa_18_19, aes(fill = cluster_10_a_14), color = NA) +
+plot_clusters_10_a_14 <- ggplot() +
+  geom_sf(data = df_dados_mapa_completo, aes(fill = cluster_10_a_14), color = NA) +
+  facet_wrap(vars(periodo)) +
   scale_fill_viridis_d(name = "Groups", end = 0.8, alpha = 0.6, direction = -1) +
   geom_sf(data = df_ufs_sf, fill = NA, linewidth = 0.08, color = "black") +
-  labs(xlab = "\n(a)") +
   theme_bw() +
-  theme(legend.position = "top", legend.direction = "vertical")
+  theme(legend.position = "top") 
 
-plot_clusters_10_a_14_2 <- ggplot() +
-  geom_sf(data = df_dados_mapa_20_21, aes(fill = cluster_10_a_14), color = NA) +
-  scale_fill_viridis_d(name = "Groups", end = 0.8, alpha = 0.6, direction = -1) +
-  geom_sf(data = df_ufs_sf, fill = NA, linewidth = 0.08, color = "black") +
-  labs(xlab = "\n(b)") +
-  theme_bw() +
-  theme(legend.position = "top", legend.direction = "vertical")
-
-grid.arrange(plot_clusters_10_a_14_1, plot_clusters_10_a_14_2, ncol = 2)
-
-### Exporting the plot
+##### Exporting the plot
 ggsave(
   "figures/Fig2.tiff", 
-  arrangeGrob(plot_clusters_10_a_14_1, plot_clusters_10_a_14_2, ncol = 2),
+  plot_clusters_10_a_14,
   width = 7.5, height = 6, units = "in", 
   dpi = 600, compression = "lzw"
 )
 
 #### For the 15 to 19 age group
-plot_clusters_15_a_19_1 <- ggplot() +
-  geom_sf(data = df_dados_mapa_18_19, aes(fill = cluster_15_a_19), color = NA) +
+plot_clusters_15_a_19 <- ggplot() +
+  geom_sf(data = df_dados_mapa_completo, aes(fill = cluster_15_a_19), color = NA) +
+  facet_wrap(vars(periodo)) +
   scale_fill_viridis_d(name = "Groups", end = 0.8, alpha = 0.6, direction = -1) +
   geom_sf(data = df_ufs_sf, fill = NA, linewidth = 0.08, color = "black") +
-  labs(xlab = "\n(a)") +
   theme_bw() +
-  theme(legend.position = "top", legend.direction = "vertical")
+  theme(legend.position = "top")
 
-plot_clusters_15_a_19_2 <- ggplot() +
-  geom_sf(data = df_dados_mapa_20_21, aes(fill = cluster_15_a_19), color = NA) +
-  scale_fill_viridis_d(name = "Groups", end = 0.8, alpha = 0.6, direction = -1) +
-  geom_sf(data = df_ufs_sf, fill = NA, linewidth = 0.08, color = "black") +
-  labs(xlab = "\n(b)") +
-  theme_bw() +
-  theme(legend.position = "top", legend.direction = "vertical")
-
-grid.arrange(plot_clusters_15_a_19_1, plot_clusters_15_a_19_1, ncol = 2)
-
-### Exporting the plot
+##### Exporting the plot
 ggsave(
   "figures/Fig3.tiff", 
-  arrangeGrob(plot_clusters_15_a_19_1, plot_clusters_15_a_19_2, ncol = 2),
+  plot_clusters_15_a_19,
   width = 7.5, height = 6, units = "in", 
   dpi = 600, compression = "lzw"
 )

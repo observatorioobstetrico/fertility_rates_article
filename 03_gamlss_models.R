@@ -33,7 +33,7 @@ df_primary_care <- read.csv("databases/dados_indicadores_auxiliares.csv") |>
 ## Joining the fertility rate and the primary care coverage data
 df_indicadores <- left_join(df_fecundidade_muni, df_primary_care) |>
   mutate(
-    pandemia = factor(ifelse(ano < 2020, "before", "after"), levels = c("before", "after")),
+    pandemia = factor(ifelse(ano < 2020, "before", "during"), levels = c("before", "during")),
     ano = as.factor(ano)
   ) |>
   drop_na()  # There are 5 municipalities without the HDI-M information
@@ -161,7 +161,7 @@ coberturas_ab <- seq(0, 100, by = 10)
 
 df_newdata <- expand.grid(idhms, anos, coberturas_ab) |>
   arrange(Var1) |>
-  mutate(pandemia = factor(ifelse(Var2 < 2020, "before", "after"), levels = c("before", "after")))
+  mutate(pandemia = factor(ifelse(Var2 < 2020, "before", "during"), levels = c("before", "during")))
 
 colnames(df_newdata) <- c("idhm", "ano", "cobertura_ab", "pandemia")
 
