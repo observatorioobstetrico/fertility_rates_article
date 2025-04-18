@@ -136,22 +136,39 @@ fit4_st4 <- stepGAICAll.B(
 )
 summary(fit4_st4)  
 
+### Ajustando o modelo com apenas os termos significativos para mu
+fit5_st4 <- gamlss(
+  tx_fecundidade_menor_20 ~ random(ano) + pandemia + cobertura_ab + idhm + pandemia*cobertura_ab + cobertura_ab*idhm,
+  data = df_indicadores,
+  family = ST4(),
+  sigma.formula = ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
+  nu.formula = ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
+  tau.formula = ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
+  control = gamlss.control(n.cyc = 500)
+)
+summary(fit5_st4)
+plot(fit5_st4)
+wp(fit5_st4, ylim.all = 0.6)
+
 #### Using the LR test to verify if the simpler models are better than the full model 
 LR.test(fit3_st4, fit1_st4)  # The model selected by the first strategy ISN'T better than the full model 
 LR.test(fit4_st4, fit1_st4)  # The model selected by the second strategy ISN'T better than the full model 
-GAIC(fit1_st4, fit3_st4, fit4_st4)
+LR.test(fit5_st4, fit1_st4)  # The model selected by the third strategy IS better than the full model 
+GAIC(fit1_st4, fit3_st4, fit4_st4, fit5_st4)
 
 #### Residual analysis of the selected model
-plot(fit1_st4)
-wp(fit1_st4, ylim.all = 0.6)
+fit_final <- fit5_st4
 
-#### Final choice: ST4's full model.
+plot(fit_final)
+wp(fit_final, ylim.all = 0.6)
+
+#### Final choice: ST4's final reduced model.
 
 
 # Interpreting the selected model ---------------------------------------------
 ## Estimated coefficients each of the parameter's model
-summary(fit1_st4)
-getSmo(fit1_st4)$coef
+summary(fit_final)
+getSmo(fit_final)$coef
 
 ## Trying to better understand the impact of each variable on the fertility rate
 ### Creating a dataframe with the desired observations to predict
@@ -166,12 +183,12 @@ df_newdata <- expand.grid(idhms, anos, coberturas_ab) |>
 colnames(df_newdata) <- c("idhm", "ano", "cobertura_ab", "pandemia")
 
 ### Making the predictions 
-predicoes <- predict(fit1_st4, newdata = df_newdata, type = "response")
+predicoes <- predict(fit_final, newdata = df_newdata, type = "response")
 
 df_newdata_completo <- df_newdata |>
   mutate(
     idhm = as.factor(idhm),
-    predicoes = predicoes^2
+    predicoes = predicoes
   ) |>
   group_by(idhm, cobertura_ab, pandemia) |>
   summarise(predicoes = mean(predicoes))

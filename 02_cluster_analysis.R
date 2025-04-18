@@ -134,50 +134,57 @@ d1_pam4_20_21 <- cluster::pam(dados1_20_21, k = 4)
 
 ### Ward's method
 #### Ploting the drodrograms
+set.seed(1504)
 d1_ward_18_19 <- hclust(dados1_18_19_dist, method = "ward.D2")
 plot(as.dendrogram(d1_ward_18_19), ylab = "Altura") 
-rect.hclust(d1_ward_18_19, k = 3, border = 2:5) # Candidates: K = 3.
+rect.hclust(d1_ward_18_19, k = 2, border = 2:5) 
+rect.hclust(d1_ward_18_19, k = 3, border = 2:5) # Candidates: K = 2 and K = 3.
 
+set.seed(1504)
 d1_ward_20_21 <- hclust(dados1_20_21_dist, method = "ward.D2")
 plot(as.dendrogram(d1_ward_20_21), ylab = "Altura") 
-rect.hclust(d1_ward_20_21, k = 3, border = 2:5) # Candidates: K = 3.
+rect.hclust(d1_ward_20_21, k = 2, border = 2:5) 
+rect.hclust(d1_ward_20_21, k = 4, border = 2:5) # Candidates: K = 2 or K = 4.
 
 #### Adjusting the Ward's method with the chosen numbers of clusters 
+d1_ward2_18_19_class <- cutree(d1_ward_18_19, k = 2)
 d1_ward3_18_19_class <- cutree(d1_ward_18_19, k = 3)
-d1_ward3_20_21_class <- cutree(d1_ward_20_21, k = 3)
+
+d1_ward2_20_21_class <- cutree(d1_ward_20_21, k = 2)
+d1_ward4_20_21_class <- cutree(d1_ward_20_21, k = 4)
 
 
 ### Single linkage
 #### Ploting the dendrograms
+set.seed(1504)
 d1_single_18_19 <- hclust(dados1_18_19_dist, method = "single")
-plot(as.dendrogram(d1_single_18_19), ylab = "Altura") 
-rect.hclust(d1_single_18_19, k = 3, border = 2:5) # No candidates. Bad fit.
+plot(as.dendrogram(d1_single_18_19), ylab = "Altura") # No candidates. Bad fit.
 
+set.seed(1504)
 d1_single_20_21 <- hclust(dados1_20_21_dist, method = "single")
-plot(as.dendrogram(d1_single_20_21), ylab = "Altura") 
-rect.hclust(d1_single_20_21, k = 3, border = 2:5) # No candidates. Bad fit.
+plot(as.dendrogram(d1_single_20_21), ylab = "Altura") # No candidates. Bad fit.
 
 
 ### Complete linkage
 #### Ploting the dendrograms
+set.seed(1504)
 d1_complete_18_19 <- hclust(dados1_18_19_dist, method = "complete")
-plot(as.dendrogram(d1_complete_18_19), ylab = "Altura") 
-rect.hclust(d1_complete_18_19, k = 3, border = 2:5) # No candidates. Bad fit.
+plot(as.dendrogram(d1_complete_18_19), ylab = "Altura") # No candidates. Bad fit.
 
+set.seed(1504)
 d1_complete_20_21 <- hclust(dados1_20_21_dist, method = "complete")
-plot(as.dendrogram(d1_complete_20_21), ylab = "Altura") 
-rect.hclust(d1_complete_20_21, k = 3, border = 2:5) # No candidates. Bad fit.
+plot(as.dendrogram(d1_complete_20_21), ylab = "Altura") # No candidates. Bad fit.
 
 
 ### Average linkage
 #### Ploting the dendrograms
+set.seed(1504)
 d1_average_18_19 <- hclust(dados1_18_19_dist, method = "average")
-plot(as.dendrogram(d1_average_18_19), ylab = "Altura") 
-rect.hclust(d1_average_18_19, k = 3, border = 2:5) # No candidates. Bad fit.
+plot(as.dendrogram(d1_average_18_19), ylab = "Altura") # No candidates. Bad fit.
 
+set.seed(1504)
 d1_average_20_21 <- hclust(dados1_20_21_dist, method = "average")
-plot(as.dendrogram(d1_average_20_21), ylab = "Altura") 
-rect.hclust(d1_average_20_21, k = 3, border = 2:5) # No candidates. Bad fit.
+plot(as.dendrogram(d1_average_20_21), ylab = "Altura") # No candidates. Bad fit. 
 
 
 ### Chosing the best clustering method
@@ -203,13 +210,13 @@ d1_pam_index_18_19 <- data.frame(
 )
 
 d1_ward_index_18_19 <- data.frame(
-  metodo = unlist(lapply(3, function(i) paste0("ward", i))),
-  db_index_cent = unlist(lapply(3, function(i) index.DB(dados1_18_19, get(paste0("d1_ward", i, "_18_19", "_class")))$DB)),
-  db_index_med = unlist(lapply(3, function(i) index.DB(dados1_18_19, get(paste0("d1_ward", i, "_18_19", "_class")), d = dados1_18_19_dist, centrotypes = "medoids")$DB)),
-  dunn_index = unlist(lapply(3, function(i) dunn(distance = dados1_18_19_dist, get(paste0("d1_ward", i, "_18_19", "_class"))))),
-  silh_index = unlist(lapply(3, function(i) index.S(dados1_18_19_dist, get(paste0("d1_ward", i, "_18_19", "_class"))))),
-  ch_index_cent = unlist(lapply(3, function(i) index.G1(dados1_18_19, get(paste0("d1_ward", i, "_18_19", "_class"))))),
-  ch_index_med = unlist(lapply(3, function(i) index.G1(dados1_18_19, get(paste0("d1_ward", i, "_18_19", "_class")), d = dados1_18_19_dist, centrotypes = "medoids")))
+  metodo = unlist(lapply(2:3, function(i) paste0("ward", i))),
+  db_index_cent = unlist(lapply(2:3, function(i) index.DB(dados1_18_19, get(paste0("d1_ward", i, "_18_19", "_class")))$DB)),
+  db_index_med = unlist(lapply(2:3, function(i) index.DB(dados1_18_19, get(paste0("d1_ward", i, "_18_19", "_class")), d = dados1_18_19_dist, centrotypes = "medoids")$DB)),
+  dunn_index = unlist(lapply(2:3, function(i) dunn(distance = dados1_18_19_dist, get(paste0("d1_ward", i, "_18_19", "_class"))))),
+  silh_index = unlist(lapply(2:3, function(i) index.S(dados1_18_19_dist, get(paste0("d1_ward", i, "_18_19", "_class"))))),
+  ch_index_cent = unlist(lapply(2:3, function(i) index.G1(dados1_18_19, get(paste0("d1_ward", i, "_18_19", "_class"))))),
+  ch_index_med = unlist(lapply(2:3, function(i) index.G1(dados1_18_19, get(paste0("d1_ward", i, "_18_19", "_class")), d = dados1_18_19_dist, centrotypes = "medoids")))
 )
 
 d1_avaliacao_18_19 <- rbind(
@@ -217,15 +224,18 @@ d1_avaliacao_18_19 <- rbind(
   d1_kmeans_index_18_19, 
   d1_ward_index_18_19
 )
+d1_avaliacao_18_19
 #### Comments:
-##### db_index_cent: the lower the better (kmeans4, followed by ward3)
-##### db_index_med: the lower the better (ward3, followed by kmeans4 and kmeans3)
-##### dunn_index: the bigger the better (kmeans4, followed by ward3 and kmeans3)
-##### silh_index: the bigger the better (kmeans3, followed by kmeans4 and pam4)
-##### ch_index_cent: the bigger the better (kmeans4, followed by kmeans3)
-##### ch_index_med: the bigger the better (kmeans4, followed by kmeans3)
+##### db_index_cent: the lower the better (kmeans4, followed by pam4)
+##### db_index_med: the lower the better (kmeans3, followed by pam3 and kmeans4)
+##### dunn_index: the higher the better (kmeans4, followed by ward3 and kmeans3)
+##### silh_index: the higher the better (ward2, followed by pam4, kmeans4 and kmeans3)
+##### ch_index_cent: the higher the better (kmeans4, followed by kmeans3)
+##### ch_index_med: the higher the better (kmeans4, followed by kmeans3)
 
-#### Choice: despite the better perfomance of k-means with K = 4, one of its clusters contained only a few municipalities (77).
+#### Choice: despite the better perfomance of k-means with K = 4, one of its clusters contained only a few municipalities (127).
+d1_kmeans4_18_19$size
+d1_kmeans3_18_19$size
 #### Thus, the chosen method is the k-means with K = 3.
 
 #### For the 2020-2021 period
@@ -250,13 +260,13 @@ d1_pam_index_20_21 <- data.frame(
 )
 
 d1_ward_index_20_21 <- data.frame(
-  metodo = unlist(lapply(3, function(i) paste0("ward", i))),
-  db_index_cent = unlist(lapply(3, function(i) index.DB(dados1_20_21, get(paste0("d1_ward", i, "_20_21", "_class")))$DB)),
-  db_index_med = unlist(lapply(3, function(i) index.DB(dados1_20_21, get(paste0("d1_ward", i, "_20_21", "_class")), d = dados1_20_21_dist, centrotypes = "medoids")$DB)),
-  dunn_index = unlist(lapply(3, function(i) dunn(distance = dados1_20_21_dist, get(paste0("d1_ward", i, "_20_21", "_class"))))),
-  silh_index = unlist(lapply(3, function(i) index.S(dados1_20_21_dist, get(paste0("d1_ward", i, "_20_21", "_class"))))),
-  ch_index_cent = unlist(lapply(3, function(i) index.G1(dados1_20_21, get(paste0("d1_ward", i, "_20_21", "_class"))))),
-  ch_index_med = unlist(lapply(3, function(i) index.G1(dados1_20_21, get(paste0("d1_ward", i, "_20_21", "_class")), d = dados1_20_21_dist, centrotypes = "medoids")))
+  metodo = unlist(lapply(c(2, 4), function(i) paste0("ward", i))),
+  db_index_cent = unlist(lapply(c(2, 4), function(i) index.DB(dados1_20_21, get(paste0("d1_ward", i, "_20_21", "_class")))$DB)),
+  db_index_med = unlist(lapply(c(2, 4), function(i) index.DB(dados1_20_21, get(paste0("d1_ward", i, "_20_21", "_class")), d = dados1_20_21_dist, centrotypes = "medoids")$DB)),
+  dunn_index = unlist(lapply(c(2, 4), function(i) dunn(distance = dados1_20_21_dist, get(paste0("d1_ward", i, "_20_21", "_class"))))),
+  silh_index = unlist(lapply(c(2, 4), function(i) index.S(dados1_20_21_dist, get(paste0("d1_ward", i, "_20_21", "_class"))))),
+  ch_index_cent = unlist(lapply(c(2, 4), function(i) index.G1(dados1_20_21, get(paste0("d1_ward", i, "_20_21", "_class"))))),
+  ch_index_med = unlist(lapply(c(2, 4), function(i) index.G1(dados1_20_21, get(paste0("d1_ward", i, "_20_21", "_class")), d = dados1_20_21_dist, centrotypes = "medoids")))
 )
 
 d1_avaliacao_20_21 <- rbind(
@@ -264,15 +274,20 @@ d1_avaliacao_20_21 <- rbind(
   d1_kmeans_index_20_21, 
   d1_ward_index_20_21
 )
+d1_avaliacao_20_21
 #### Comments:
-##### db_index_cent: the lower the better (kmeans4, followed by kmeans3 and ward3)
-##### db_index_med: the lower the better (kmeans4, followed by kmeans3 and ward3)
-##### dunn_index: the bigger the better (kmeans4, followed by ward3 and kmeans3)
-##### silh_index: the bigger the better (kmeans3, followed by ward3 and kmeans4)
-##### ch_index_cent: the bigger the better (kmeans4, followed by kmeans3)
-##### ch_index_med: the bigger the better (kmeans4, followed by kmeans3)
+##### db_index_cent: the lower the better (ward4, followed by kmeans4 and kmeans3)
+##### db_index_med: the lower the better (ward4, followed by kmeans4 and kmeans3)
+##### dunn_index: the higher the better (ward4, followed by kmeans4 and kmeans3)
+##### silh_index: the higher the better (ward2, followed by kmeans4 and kmeans3)
+##### ch_index_cent: the higher the better (kmeans4, followed by ward4 and kmeans3)
+##### ch_index_med: the higher the better (kmeans4, followed by ward4 and kmeans3)
 
-#### Choice: again, despite the better perfomance of k-means with K = 4, one of its clusters contained only a few municipalities (77).
+#### Choice: again, despite the better perfomance of k-means with K = 4 and Ward's method with K = 4, one of their clusters contained 
+#### only a few municipalities (90 and 70, respectively).
+d1_kmeans4_20_21$size
+table(d1_ward4_20_21_class)
+d1_kmeans3_18_19$size
 #### Thus, the chosen method is the k-means with K = 3.
 
 ### Adding the columns with the clusters informations to the original data.frames
@@ -312,11 +327,13 @@ df_indicadores_20_21$cluster_10_a_14 <- factor(case_when(
 ## For the 15 to 19 age group -------------------------------------------------
 ### K-means
 #### Ploting the k-means knee-plots
+set.seed(1504)
 fviz_nbclust(dados2_18_19, kmeans, method = "wss") +
   labs(
     x = "Número de clusters", y = "Variância total intragrupo", title = ""
   ) # Candidates: K = 3 and K = 4.
 
+set.seed(1504)
 fviz_nbclust(dados2_20_21, kmeans, method = "wss") +
   labs(
     x = "Número de clusters", y = "Variância total intragrupo", title = ""
@@ -338,11 +355,13 @@ d2_kmeans4_20_21 <- kmeans(dados2_20_21, 4)
 
 ### K-medians
 #### Ploting the k-medians knee-plots
+set.seed(1504)
 fviz_nbclust(dados2_18_19, cluster::pam, method = "wss") +
   labs(
     x = "Número de clusters", y = "Variância total intragrupo", title = ""
   ) # Candidates: K = 3.
 
+set.seed(1504)
 fviz_nbclust(dados2_20_21, cluster::pam, method = "wss") +
   labs(
     x = "Número de clusters", y = "Variância total intragrupo", title = ""
@@ -361,10 +380,12 @@ d2_pam4_20_21 <- cluster::pam(dados2_20_21, k = 4)
 
 ### Ward's method
 #### Ploting the drodrograms
+set.seed(1504)
 d2_ward_18_19 <- hclust(dados2_18_19_dist, method = "ward.D2")
 plot(as.dendrogram(d2_ward_18_19), ylab = "Altura") 
 rect.hclust(d2_ward_18_19, k = 3, border = 2:5) # Candidates: K = 3.
 
+set.seed(1504)
 d2_ward_20_21 <- hclust(dados2_20_21_dist, method = "ward.D2")
 plot(as.dendrogram(d2_ward_20_21), ylab = "Altura") 
 rect.hclust(d2_ward_20_21, k = 3, border = 2:5) # Candidates: K = 3.
@@ -376,35 +397,36 @@ d2_ward3_20_21_class <- cutree(d2_ward_20_21, k = 3)
 
 ### Single linkage
 #### Ploting the drodrograms
+set.seed(1504)
 d2_single_18_19 <- hclust(dados2_18_19_dist, method = "single")
 plot(as.dendrogram(d2_single_18_19), ylab = "Altura") 
 rect.hclust(d2_single_18_19, k = 3, border = 2:5) # No candidates. Bad fit.
 
+set.seed(1504)
 d2_single_20_21 <- hclust(dados2_20_21_dist, method = "single")
-plot(as.dendrogram(d2_single_20_21), ylab = "Altura") 
-rect.hclust(d2_single_20_21, k = 3, border = 2:5) # No candidates. Bad fit.
+plot(as.dendrogram(d2_single_20_21), ylab = "Altura") # No candidates. Bad fit.
 
 
 ### Complete linkage
 #### Ploting the drodrograms
+set.seed(1504)
 d2_complete_18_19 <- hclust(dados2_18_19_dist, method = "complete")
-plot(as.dendrogram(d2_complete_18_19), ylab = "Altura") 
-rect.hclust(d2_complete_18_19, k = 3, border = 2:5) # No candidates. Bad fit.
+plot(as.dendrogram(d2_complete_18_19), ylab = "Altura") # No candidates. Bad fit.
 
+set.seed(1504)
 d2_complete_20_21 <- hclust(dados2_20_21_dist, method = "complete")
-plot(as.dendrogram(d2_complete_20_21), ylab = "Altura") 
-rect.hclust(d2_complete_20_21, k = 3, border = 2:5) # No candidates. Bad fit.
+plot(as.dendrogram(d2_complete_20_21), ylab = "Altura") # No candidates. Bad fit.
 
 
 ### Average linkage
 #### Ploting the drodrograms
+set.seed(1504)
 d2_average_18_19 <- hclust(dados2_18_19_dist, method = "average")
-plot(as.dendrogram(d2_average_18_19), ylab = "Altura") 
-rect.hclust(d2_average_18_19, k = 3, border = 2:5) # No candidates. Bad fit.
+plot(as.dendrogram(d2_average_18_19), ylab = "Altura") # No candidates. Bad fit.
 
+set.seed(1504)
 d2_average_20_21 <- hclust(dados2_20_21_dist, method = "average")
-plot(as.dendrogram(d2_average_20_21), ylab = "Altura") 
-rect.hclust(d2_average_20_21, k = 3, border = 2:5) # No candidates. Bad fit.
+plot(as.dendrogram(d2_average_20_21), ylab = "Altura") # No candidates. Bad fit.
 
 
 ### Chosing the best clustering method
@@ -444,17 +466,16 @@ d2_avaliacao_18_19 <- rbind(
   d2_kmeans_index_18_19, 
   d2_ward_index_18_19
 )
+d2_avaliacao_18_19
 #### Comments:
-##### db_index_cent: the lower the better (ward3, followed by kmeans4)
-##### db_index_med: the lower the better (ward3, followed by kmeans4)
-##### dunn_index: the bigger the better (kmeans4, followed by ward3 and kmeans3)
-##### silh_index: the bigger the better (kmeans3, followed by kmeans4)
-##### ch_index_cent: the bigger the better (kmeans4, followed by kmeans3)
-##### ch_index_med: the bigger the better (kmeans4, followed by kmeans3)
+##### db_index_cent: the lower the better (kmeans3, followed by ward3 and kmeans4)
+##### db_index_med: the lower the better (kmeans3, followed by ward3)
+##### dunn_index: the higher the better (kmeans3, followed by ward3)
+##### silh_index: the higher the better (kmeans3, followed by kmeans4)
+##### ch_index_cent: the higher the better (kmeans4, followed by kmeans3)
+##### ch_index_med: the higher the better (kmeans4, followed by kmeans3)
 
-#### Choice: even though, this time around, the k-means with K = 4 didn't have problems with too little municipalities in a cluster,
-#### I'm chosing the k-means with K = 3 to make it "comparable" with the other chosen clustering methods.
-#### Thus, the chosen method is the k-means with K = 3.
+#### Choice: k-means with K = 3.
 
 #### For the 2020-2021 period
 d2_kmeans_index_20_21 <- data.frame(
@@ -492,15 +513,18 @@ d2_avaliacao_20_21 <- rbind(
   d2_kmeans_index_20_21, 
   d2_ward_index_20_21
 )
+d2_avaliacao_20_21
 #### Comments:
 ##### db_index_cent: the lower the better (kmeans4, followed by ward3 and kmeans3)
-##### db_index_med: the lower the better (kmeans4, followed by ward3 and kmeans3)
-##### dunn_index: the bigger the better (kmeans4, followed by kmeans3)
-##### silh_index: the bigger the better (kmeans3, followed by kmeans4)
-##### ch_index_cent: the bigger the better (kmeans4, followed by kmeans3)
-##### ch_index_med: the bigger the better (kmeans4, followed by kmeans3)
+##### db_index_med: the lower the better (kmeans4, followed by kmeans3 and ward3)
+##### dunn_index: the higher the better (kmeans4, followed by kmeans3)
+##### silh_index: the higher the better (kmeans4, followed by kmeans3)
+##### ch_index_cent: the higher the better (kmeans4, followed by kmeans3)
+##### ch_index_med: the higher the better (kmeans4, followed by kmeans3)
 
-#### Choice: again, despite the better perfomance of k-means with K = 4, one of its clusters contained only a few municipalities (67).
+#### Choice: even though, this time around, the k-means with K = 4 didn't have problems with too little municipalities in a cluster,
+#### I'm chosing the k-means with K = 3 to make it "comparable" with the other chosen clustering methods.
+d2_kmeans4_20_21$size
 #### Thus, the chosen method is the k-means with K = 3.
 
 ### Adding the columns with the clusters informations to the original data.frames
