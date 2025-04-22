@@ -12,12 +12,13 @@ df_aux_municios <- read.csv("databases/dados_aux_municipios.csv") |>
 
 ## Reading a table with the necessary data for calculating the fertility rate
 df_fecundidade_muni <- read.csv("databases/dados_fecundidade_menores_20.csv") |>
-  dplyr::select(codmunres, ano, nvm_menor_que_20, pop_feminina_10_a_19) |>
+  left_join(df_cobertura_sinasc) |>
   filter(ano >= 2018 & ano <= 2021) |>
   mutate(
     codmunres = as.character(codmunres),
     tx_fecundidade_menor_20 = round(nvm_menor_que_20 / pop_feminina_10_a_19 * 1000, 1)
-  ) 
+  ) |>
+  dplyr::select(codmunres, ano, tx_fecundidade_menor_20, nvm_menor_que_20, pop_feminina_10_a_19)
 
 ## Reading a table with the HDI-M and the necessary data for calculating the primary care coverage 
 df_primary_care <- read.csv("databases/dados_indicadores_auxiliares.csv") |>
@@ -47,7 +48,7 @@ gc()
 ## For the ZAGA distribution --------------------------------------------------
 ### Adjusting the full model 
 fit1_zaga <- gamlss(
-  sqrt(tx_fecundidade_menor_20) ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
+  tx_fecundidade_menor_20 ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
   data = df_indicadores,
   family = ZAGA(),
   sigma.formula = ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
@@ -61,7 +62,7 @@ wp(fit1_zaga, ylim.all = 0.6)
 ### Utilizing the two strategies described in the book "Flexible Regression and Smoothing: Using GAMLSS in R", page 397, to get the best models for each parameter
 #### Adjusting a model with only the intercept for mu and considering sigma and nu as constants 
 fit2_zaga <- gamlss(
-  sqrt(tx_fecundidade_menor_20) ~ 1,
+  tx_fecundidade_menor_20 ~ 1,
   data = df_indicadores,
   family = ZAGA,
   control = gamlss.control(n.cyc = 500)
@@ -97,7 +98,7 @@ wp(fit1_zaga, ylim.all = 0.6)
 ## For the ST4 distribution ---------------------------------------------------
 ### Adjusting the full model
 fit1_st4 <- gamlss(
-  sqrt(tx_fecundidade_menor_20) ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
+  tx_fecundidade_menor_20 ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
   data = df_indicadores,
   family = ST4(),
   sigma.formula = ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
@@ -112,7 +113,7 @@ wp(fit1_st4, ylim.all = 0.6)
 ### Utilizing the two strategies described in the book "Flexible Regression and Smoothing: Using GAMLSS in R", page 397, to get the best models for each parameter
 #### Adjusting a model with only the intercept for mu and considering sigma and nu as constants 
 fit2_st4 <- gamlss(
-  sqrt(tx_fecundidade_menor_20) ~ 1,
+  tx_fecundidade_menor_20 ~ 1,
   data = df_indicadores,
   family = ST4,
   control = gamlss.control(n.cyc = 500)
@@ -136,7 +137,7 @@ fit4_st4 <- stepGAICAll.B(
 )
 summary(fit4_st4)  
 
-### Ajustando o modelo com apenas os termos significativos para mu
+### Adjusting a third model with only the significant terms for mu
 fit5_st4 <- gamlss(
   tx_fecundidade_menor_20 ~ random(ano) + pandemia + cobertura_ab + idhm + pandemia*cobertura_ab + cobertura_ab*idhm,
   data = df_indicadores,
@@ -202,6 +203,17 @@ df_variacao <- df_newdata_completo |>
   summarise(variacao_media = round(mean(variacao, na.rm = T), 3)) |>
   arrange(idhm, pandemia)
 df_variacao
+
+### Creating a dataframe with the mean variations of the predicted fertility rates
+### for each value of HDI-M when the primary care coverage is increased by 10
+df_variacoes_sem_pandemia <- df_newdata_completo |>
+  group_by(idhm, pandemia) |>
+  mutate(variacao = (predicoes - lag(predicoes))) |>
+  ungroup() |>
+  group_by(idhm) |>
+  summarise(variacao_media = round(mean(variacao, na.rm = T), 3)) |>
+  arrange(idhm)
+df_variacoes_sem_pandemia
 
 ### Plotting a similar information
 plot_variacao <- ggplot(
