@@ -5,43 +5,16 @@ library(gamlss)
 library(ggplot2)
 
 # Reading and manipulating the data -------------------------------------------
-## Reading a table with auxiliary data for the municipalities
-df_aux_municios <- read.csv("databases/dados_aux_municipios.csv") |>
-  dplyr::select(codmunres, municipio, uf, regiao, idhm) |>
-  mutate(regiao = factor(regiao, levels = c("Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul")))
-
-## Reading a table with the necessary data for calculating the fertility rate
-df_fecundidade_muni <- read.csv("databases/dados_fecundidade_menores_20.csv") |>
-  left_join(df_cobertura_sinasc) |>
+df_indicadores <- read.csv("databases/data_fertility_rates_article.csv") |>
   filter(ano >= 2018 & ano <= 2021) |>
   mutate(
     codmunres = as.character(codmunres),
-    tx_fecundidade_menor_20 = round(nvm_menor_que_20 / pop_feminina_10_a_19 * 1000, 1)
-  ) |>
-  dplyr::select(codmunres, ano, tx_fecundidade_menor_20, nvm_menor_que_20, pop_feminina_10_a_19)
-
-## Reading a table with the HDI-M and the necessary data for calculating the primary care coverage 
-df_primary_care <- read.csv("databases/dados_indicadores_auxiliares.csv") |>
-  dplyr::select(codmunres, ano, media_cobertura_esf, populacao_total, pop_fem_10_49_com_plano_saude, populacao_feminina_10_a_49) |>
-  filter(ano >= 2018 & ano <= 2021) |>
-  mutate(
-    codmunres = as.character(codmunres),
-    cobertura_ab = round(media_cobertura_esf / populacao_total * 100, 1),
-    .keep = "unused"
-  ) |>
-  left_join(df_aux_municios |> mutate(codmunres = as.character(codmunres)) |> dplyr::select(!uf))
-
-## Joining the fertility rate and the primary care coverage data
-df_indicadores <- left_join(df_fecundidade_muni, df_primary_care) |>
-  mutate(
+    tx_fecundidade_menor_20 = round(nvm_10_a_19 / pop_feminina_10_a_19 * 1000, 1),
+    cobertura_ab = round(media_cobertura_ab / populacao_total * 100, 1),
     pandemia = factor(ifelse(ano < 2020, "before", "during"), levels = c("before", "during")),
     ano = as.factor(ano)
   ) |>
-  drop_na()  # There are 5 municipalities without the HDI-M information
-
-## Removing auxiliary data
-rm(df_aux_municios, df_primary_care, df_fecundidade_muni)
-gc()
+  drop_na() # There are 5 municipalities without the M-HDI information
 
 
 # Adjusting the models --------------------------------------------------------
@@ -55,7 +28,11 @@ fit1_zaga <- gamlss(
   nu.formula = ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
   control = gamlss.control(n.cyc = 500)
 )
+saveRDS(fit1_zaga, "r_objects/fit1_zaga.RDS")
+
 summary(fit1_zaga)
+saveRDS(summary(fit1_zaga, save = TRUE), "r_objects/sumario_fit1_zaga.RDS")
+
 plot(fit1_zaga)
 wp(fit1_zaga, ylim.all = 0.6)
 
@@ -75,7 +52,13 @@ fit3_zaga <- stepGAICAll.A(
   fit2_zaga,
   scope = list(lower =~ 1, upper =  ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm))
 )
+saveRDS(fit3_zaga, "r_objects/fit3_zaga.RDS")
+
 summary(fit3_zaga)
+saveRDS(summary(fit3_zaga, save = TRUE), "r_objects/sumario_fit3_zaga.RDS")
+
+plot(fit3_zaga)
+wp(fit3_zaga, ylim.all = 0.6)
 
 #### Strategy 2:
 #### This strategy forces all os the models to select the same variables subsets 
@@ -83,7 +66,31 @@ fit4_zaga <- stepGAICAll.B(
   fit2_zaga,
   scope = list(lower =~ 1, upper =  ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm))
 )
+saveRDS(fit4_zaga, "r_objects/fit4_zaga.RDS")
+
 summary(fit4_zaga)
+saveRDS(summary(fit4_zaga, save = TRUE), "r_objects/sumario_fit4_zaga.RDS")
+
+plot(fit4_zaga)
+wp(fit4_zaga, ylim.all = 0.6)
+
+### Adjusting a third model with only the significant terms for mu
+fit5_zaga <- gamlss(
+  tx_fecundidade_menor_20 ~ random(ano) + pandemia + cobertura_ab + idhm + pandemia*idhm + cobertura_ab*idhm,
+  data = df_indicadores,
+  family = ZAGA(),
+  sigma.formula = ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
+  nu.formula = ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
+  tau.formula = ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
+  control = gamlss.control(n.cyc = 500)
+)
+saveRDS(fit5_zaga, "r_objects/fit5_zaga.RDS")
+
+summary(fit5_zaga)
+saveRDS(summary(fit5_zaga, save = TRUE), "r_objects/sumario_fit5_zaga.RDS")
+
+plot(fit5_zaga)
+wp(fit5_zaga, ylim.all = 0.6)
 
 #### Using the LR test to verify if the simpler models are better than the full model 
 LR.test(fit3_zaga, fit1_zaga)  # The model selected by the first strategy ISN'T better than the full model 
@@ -106,7 +113,11 @@ fit1_st4 <- gamlss(
   tau.formula = ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
   control = gamlss.control(n.cyc = 500)
 )
+saveRDS(fit1_st4, "r_objects/fit1_st4.RDS")
+
 summary(fit1_st4)
+saveRDS(summary(fit1_st4, save = TRUE), "r_objects/sumario_fit1_st4.RDS")
+
 plot(fit1_st4)
 wp(fit1_st4, ylim.all = 0.6)
 
@@ -127,7 +138,13 @@ fit3_st4 <- stepGAICAll.A(
   fit2_st4,
   scope = list(lower =~ 1, upper =  ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm))
 )
+saveRDS(fit3_st4, "r_objects/fit3_st4.RDS")
+
 summary(fit3_st4)
+saveRDS(summary(fit3_st4, save = TRUE), "r_objects/sumario_fit3_st4.RDS")
+
+plot(fit3_st4)
+wp(fit3_st4, ylim.all = 0.6)
 
 #### Strategy 2:
 #### This strategy forces all os the models to select the same variables subsets 
@@ -135,7 +152,13 @@ fit4_st4 <- stepGAICAll.B(
   fit2_st4,
   scope = list(lower =~ 1, upper =  ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm))
 )
+saveRDS(fit4_st4, "r_objects/fit4_st4.RDS")
+
 summary(fit4_st4)  
+saveRDS(summary(fit4_st4, save = TRUE), "r_objects/sumario_fit4_st4.RDS")
+
+plot(fit4_st4)
+wp(fit4_st4, ylim.all = 0.6)
 
 ### Adjusting a third model with only the significant terms for mu
 fit5_st4 <- gamlss(
@@ -147,13 +170,17 @@ fit5_st4 <- gamlss(
   tau.formula = ~ random(ano) + (pandemia + cobertura_ab + idhm) * (pandemia + cobertura_ab + idhm),
   control = gamlss.control(n.cyc = 500)
 )
+saveRDS(fit5_st4, "r_objects/fit5_st4.RDS")
+
 summary(fit5_st4)
+saveRDS(summary(fit5_st4, save = TRUE), "r_objects/sumario_fit5_st4.RDS")
+
 plot(fit5_st4)
 wp(fit5_st4, ylim.all = 0.6)
 
 #### Using the LR test to verify if the simpler models are better than the full model 
 LR.test(fit3_st4, fit1_st4)  # The model selected by the first strategy ISN'T better than the full model 
-LR.test(fit4_st4, fit1_st4)  # The model selected by the second strategy ISN'T better than the full model 
+LR.test(fit4_st4, fit1_st4)  # The model selected by the second strategy IS better than the full model 
 LR.test(fit5_st4, fit1_st4)  # The model selected by the third strategy IS better than the full model 
 GAIC(fit1_st4, fit3_st4, fit4_st4, fit5_st4)
 
@@ -213,7 +240,6 @@ df_variacoes_sem_pandemia <- df_newdata_completo |>
   group_by(idhm) |>
   summarise(variacao_media = round(mean(variacao, na.rm = T), 3)) |>
   arrange(idhm)
-df_variacoes_sem_pandemia
 
 ### Plotting a similar information
 plot_variacao <- ggplot(

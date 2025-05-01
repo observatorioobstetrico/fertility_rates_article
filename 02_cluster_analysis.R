@@ -1,10 +1,9 @@
 # Loading the necessary libraries
+library(knitr)
 library(dplyr)
-library(janitor)
 library(factoextra)
 library(clusterSim)
 library(clValid)
-library(knitr)
 library(htmltools)
 library(gridExtra)
 library(grid)
@@ -13,55 +12,35 @@ library(sf)
 library(geobr)
 
 # Reading and manipulating the data -------------------------------------------
-## Reading a table with auxiliary data for the municipalities
-df_aux_municios <- read.csv("databases/dados_aux_municipios.csv") |>
-  select(codmunres, municipio, uf, idhm) 
+df_indicadores <- read.csv("databases/data_fertility_rates_article.csv")
 
-## Reading tables with the necessary data for calculating the fertility rates for each period
-df_fecundidade_18_19 <- read.csv("databases/dados_fecundidade_outras_faixas.csv") |>
-  left_join(df_aux_municios) |>
+## Filtering and calculating the fertility rates for each period
+df_indicadores_18_19 <- df_indicadores |>
   filter(ano %in% c(2018, 2019)) |>
   group_by(codmunres) |>
   summarise(
     tx_fecundidade_10_a_14 = round(sum(nvm_10_a_14) / sum(pop_feminina_10_a_14) * 1000, 1),
     tx_fecundidade_15_a_19 = round(sum(nvm_15_a_19) / sum(pop_feminina_15_a_19) * 1000, 1),
+    cobertura_ab = round(sum(media_cobertura_ab) / sum(populacao_total) * 100, 1),
+    porc_exclusivas_sus = round(sum(pop_fem_10_49_com_plano_saude) / sum(pop_feminina_10_a_49) * 100, 1),
     idhm = mean(idhm)
-  )
+  ) |>
+  ungroup()
 
-df_fecundidade_20_21 <- read.csv("databases/dados_fecundidade_outras_faixas.csv") |>
-  left_join(df_aux_municios) |>
+df_indicadores_20_21 <- df_indicadores |>
   filter(ano %in% c(2020, 2021)) |>
   group_by(codmunres) |>
   summarise(
     tx_fecundidade_10_a_14 = round(sum(nvm_10_a_14) / sum(pop_feminina_10_a_14) * 1000, 1),
     tx_fecundidade_15_a_19 = round(sum(nvm_15_a_19) / sum(pop_feminina_15_a_19) * 1000, 1),
+    cobertura_ab = round(sum(media_cobertura_ab) / sum(populacao_total) * 100, 1),
+    porc_exclusivas_sus = round(sum(pop_fem_10_49_com_plano_saude) / sum(pop_feminina_10_a_49) * 100, 1),
     idhm = mean(idhm)
-  )
-
-## Reading tables with the necessary data for calculating the primary care coverage for each period
-df_primary_care_18_19 <- read.csv("databases/dados_indicadores_auxiliares.csv") |>
-  select(codmunres, ano, media_cobertura_esf, populacao_total) |>
-  filter(ano %in% c(2018, 2019)) |>
-  group_by(codmunres) |>
-  summarise(
-    cobertura_ab = round(sum(media_cobertura_esf) / sum(populacao_total) * 100, 1)
-  ) 
-
-df_primary_care_20_21 <- read.csv("databases/dados_indicadores_auxiliares.csv") |>
-  select(codmunres, ano, media_cobertura_esf, populacao_total) |>
-  filter(ano %in% c(2020, 2021)) |>
-  group_by(codmunres) |>
-  summarise(
-    cobertura_ab = round(sum(media_cobertura_esf) / sum(populacao_total) * 100, 1)
-  ) 
-
-## Joining the primary care coverage and the fertility rates data for each period
-df_indicadores_18_19 <- left_join(df_fecundidade_18_19, df_primary_care_18_19) 
-df_indicadores_20_21 <- left_join(df_fecundidade_20_21, df_primary_care_20_21) 
+  ) |>
+  ungroup()
 
 ## Removing auxiliary objects
-rm(df_fecundidade_18_19, df_fecundidade_20_21, df_aux_municios, df_primary_care_18_19, df_primary_care_20_21)
-
+rm(df_indicadores)
 
 # For the cluster analysis ----------------------------------------------------
 ## Standardizing the data for each of the four cluster analysis
@@ -187,7 +166,7 @@ d1_average_20_21 <- hclust(dados1_20_21_dist, method = "average")
 plot(as.dendrogram(d1_average_20_21), ylab = "Altura") # No candidates. Bad fit. 
 
 
-### Chosing the best clustering method
+### Choosing the best clustering method
 #### For the 2018-2019 period 
 d1_kmeans_index_18_19 <- data.frame(
   metodo = unlist(lapply(3:4, function(i) paste0("kmeans", i))),
@@ -399,8 +378,7 @@ d2_ward3_20_21_class <- cutree(d2_ward_20_21, k = 3)
 #### Ploting the drodrograms
 set.seed(1504)
 d2_single_18_19 <- hclust(dados2_18_19_dist, method = "single")
-plot(as.dendrogram(d2_single_18_19), ylab = "Altura") 
-rect.hclust(d2_single_18_19, k = 3, border = 2:5) # No candidates. Bad fit.
+plot(as.dendrogram(d2_single_18_19), ylab = "Altura") # No candidates. Bad fit.
 
 set.seed(1504)
 d2_single_20_21 <- hclust(dados2_20_21_dist, method = "single")

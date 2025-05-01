@@ -5,16 +5,8 @@ library(ggplot2)
 library(trend)
 
 # Reading the data ------------------------------------------------------------
-## Reading a table with auxiliary data for the municipalities
-df_aux_municios <- read.csv("databases/dados_aux_municipios.csv") |>
-  dplyr::select(codmunres, municipio, uf, regiao, idhm) |>
+df_fecundidade <- read.csv("databases/data_fertility_rates_article.csv") |>
   mutate(regiao = factor(regiao, levels = c("Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul")))
-
-## Reading a table with the necessary data for calculating the fertility rates
-df_fecundidade_aux <- read.csv("databases/dados_fecundidade_outras_faixas.csv") 
-
-## Joining both data.frames
-df_fecundidade <- left_join(df_fecundidade_aux, df_aux_municios)
 
 ## Aggregating the data for the hole country
 df_fecundidade_br <- df_fecundidade |>
@@ -44,7 +36,7 @@ df_fecundidade_ufs <- df_fecundidade |>
   ) |>
   ungroup() |>
   mutate(
-    uf = factor(uf, levels = df_aux_municios |> dplyr::select(uf, regiao) |> arrange(regiao, uf) |> pull(uf) |> unique())
+    uf = factor(uf, levels = df_fecundidade |> dplyr::select(uf, regiao) |> arrange(regiao, uf) |> pull(uf) |> unique())
   ) |>
   arrange(uf)
 
@@ -79,6 +71,7 @@ plot_br_time_series <- ggplot(data = df_fecundidade_br_unico, mapping = aes(x = 
   geom_text(label = df_fecundidade_br_unico$tx_fecundidade, nudge_y = 2, show.legend = FALSE) +
   theme(legend.position = "bottom") +
   scale_color_manual(values = c("Salmon", "DodgerBlue"))
+plot_br_time_series
 
 ## Exporting the plot
 ggsave(
@@ -115,8 +108,8 @@ for (i in 1:length(unique(df_fecundidade_tendencia$local))) {
     local = as.vector(unlist(lapply(mann_kendall_results, `[[`, "local"))),
     Variavel = names(mann_kendall_results), 
     valor_2012 = lapply(variaveis, function(variavel) df_fecundidade_tendencia |> filter(local == localidade, ano == 2012) |> pull(variavel)) |> as.numeric(),
-    valor_2019 = lapply(variaveis, function(variavel) df_fecundidade_tendencia |> filter(local == localidade, ano == 2019) |> pull(variavel)) |> as.numeric(),
-    valor_2020 = lapply(variaveis, function(variavel) df_fecundidade_tendencia |> filter(local == localidade, ano == 2020) |> pull(variavel)) |> as.numeric(),
+    #valor_2019 = lapply(variaveis, function(variavel) df_fecundidade_tendencia |> filter(local == localidade, ano == 2019) |> pull(variavel)) |> as.numeric(),
+    #valor_2020 = lapply(variaveis, function(variavel) df_fecundidade_tendencia |> filter(local == localidade, ano == 2020) |> pull(variavel)) |> as.numeric(),
     valor_2021 = lapply(variaveis, function(variavel) df_fecundidade_tendencia |> filter(local == localidade, ano == 2021) |> pull(variavel)) |> as.numeric(),
     Mann_Kendall_z = round(as.numeric(unlist(lapply(mann_kendall_results, `[[`, "z_value.z"))), 3),
     Mann_Kendall_p = p_value
@@ -130,9 +123,14 @@ results_table_completa_organizada <- results_table_completa |>
   filter(startsWith(Variavel, "tx")) |>
   pivot_wider(
     names_from = Variavel,
-    values_from = c(valor_2012, valor_2019, valor_2020, valor_2021, Mann_Kendall_z, Mann_Kendall_p)
+    values_from = c(
+      valor_2012, 
+      #valor_2019, valor_2020, 
+      valor_2021, Mann_Kendall_z, Mann_Kendall_p
+    )
   ) |>
   select_at(vars("local", ends_with("10_a_14"), ends_with("15_a_19")))
+results_table_completa_organizada
 
 ## Exportando the final table
 write.csv2(results_table_completa_organizada, "databases/tabela_mann_kendall_completa.csv", row.names = FALSE)
