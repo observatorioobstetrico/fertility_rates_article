@@ -182,15 +182,18 @@ wp(fit5_st4, ylim.all = 0.6)
 LR.test(fit3_st4, fit1_st4)  # The model selected by the first strategy ISN'T better than the full model 
 LR.test(fit4_st4, fit1_st4)  # The model selected by the second strategy IS better than the full model 
 LR.test(fit5_st4, fit1_st4)  # The model selected by the third strategy IS better than the full model 
-GAIC(fit1_st4, fit3_st4, fit4_st4, fit5_st4)
+GAIC(fit1_st4, fit3_st4, fit4_st4, fit5_st4)  # The model selected by the second strategy is better than the third
+### Since the fit4_st4 model is nested within fit5_st4, we can compare them using GLRT 
+### (both have the same model for mu, but fit5_st4 has the complete model for all other parameters)
+LR.test(fit4_st4, fit5_st4)
 
 #### Residual analysis of the selected model
-fit_final <- fit5_st4
+fit_final <- fit4_st4
 
 plot(fit_final)
 wp(fit_final, ylim.all = 0.6)
 
-#### Final choice: ST4's final reduced model.
+#### Final choice: ST4's second reduced model.
 
 
 # Interpreting the selected model ---------------------------------------------
