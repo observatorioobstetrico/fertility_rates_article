@@ -1,5 +1,5 @@
 ---
-title: 'Supplementary Material: Additional context to all results presented'
+title: 'Supplementary Material 1: Additional context to all results presented'
 author: "Rafael Sant'Ana Herzog"
 date: "`r Sys.Date()`"
 bibliography: references.bib
@@ -23,7 +23,7 @@ header-includes:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.align = "center", fig.width = 8, fig.height = 6, fig.pos='H')
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.align = "center", fig.width = 6, fig.height = 4, fig.pos='H')
 options(scipen = 999)
 ```
 
@@ -197,7 +197,7 @@ df_fecundidade_ufs <- df_indicadores |>
 
 **Figure \@ref(fig:plot-ts)** presents the time series from 2012 to 2021 of fertility rates for the age groups 10 to 14 years and 15 to 19 years in Brazil. For the 10 to 14 year old age group, there is an average decrease of 7.69% in the fertility rate per year in the pre-pandemic period (2018 and 2019). During the pandemic, there was a decrease of 8.33% from 2019 to 2020, and the rate was stationary from 2020 to 2021. For the age group from 15 to 19 years old, the average decrease in the fertility rate per year before the pandemic was 6.55%. During the pandemic, there was a 7.92% decrease from 2019 to 2020 and a 3.09% decrease from 2020 to 2021.
 
-```{r plot-ts, fig.cap="Evolution of fertility rates in the age groups of 10 to 14 years and 15 to 19 years in Brazil, 2012 – 2021.", dpi = 600}
+```{r plot-ts, fig.cap="Evolution of fertility rates in the age groups of 10 to 14 years and 15 to 19 years in Brazil, 2012 – 2021.", dpi = 600, fig.width = 8, fig.height = 6}
 # Ploting Brazil's time series for both indicators
 ## Transforming the data.frame to the long format
 df_fecundidade_br_unico <- df_fecundidade_br |>
@@ -433,11 +433,11 @@ dados2_20_21_dist <- dist(dados2_20_21, method = "euclidean")
 # For the 10 to 14 age group
 ## K-Means
 ### 2018-2019
-#### Ploting the k-means knee-plot for the 2018-2019 period
+#### Ploting the K-Means knee-plot for the 2018-2019 period
 kneeplot_kmeans_10_14_18_19 <- fviz_nbclust(dados1_18_19, kmeans, method = "wss")
 saveRDS(kneeplot_kmeans_10_14_18_19, "r_objects/kneeplot_kmeans_10_14_18_19.RDS")
 
-#### Adjusting the k-means method with the chosen numbers of clusters
+#### Adjusting the K-Means method with the chosen numbers of clusters
 set.seed(1504)
 d1_kmeans3_18_19 <- kmeans(dados1_18_19, 3)
 
@@ -445,11 +445,11 @@ set.seed(1504)
 d1_kmeans4_18_19 <- kmeans(dados1_18_19, 4)
 
 ### 2020-2021
-#### Ploting the k-means knee-plot for the 2020-2021 period
+#### Ploting the K-Means knee-plot for the 2020-2021 period
 kneeplot_kmeans_10_14_20_21 <- fviz_nbclust(dados1_20_21, kmeans, method = "wss")
 saveRDS(kneeplot_kmeans_10_14_20_21, "r_objects/kneeplot_kmeans_10_14_20_21.RDS")
 
-#### Adjusting the k-means method with the chosen numbers of clusters
+#### Adjusting the K-Means method with the chosen numbers of clusters
 set.seed(1504)
 d1_kmeans3_20_21 <- kmeans(dados1_20_21, 3)
 
@@ -465,10 +465,10 @@ saveRDS(kneeplot_kmedians_10_14_18_19, "r_objects/kneeplot_kmedians_10_14_18_19.
 
 #### Adjusting the k-medians method with the chosen numbers of clusters
 set.seed(1504)
-d1_pam3_18_19 <- cluster::pam(dados1_18_19, k = 3)
+d1_kmedoids3_18_19 <- cluster::pam(dados1_18_19, k = 3)
 
 set.seed(1504)
-d1_pam4_18_19 <- cluster::pam(dados1_18_19, k = 4)
+d1_kmedoids4_18_19 <- cluster::pam(dados1_18_19, k = 4)
 
 ### 2020-2021
 #### Ploting the k-medians knee-plots for the 2020-2021 period
@@ -477,10 +477,10 @@ saveRDS(kneeplot_kmedians_10_14_20_21, "r_objects/kneeplot_kmedians_10_14_20_21.
 
 #### Adjusting the k-medians method with the chosen numbers of clusters
 set.seed(1504)
-d1_pam3_20_21 <- cluster::pam(dados1_20_21, k = 3)
+d1_kmedoids3_20_21 <- cluster::pam(dados1_20_21, k = 3)
 
 set.seed(1504)
-d1_pam4_20_21 <- cluster::pam(dados1_20_21, k = 4)
+d1_kmedoids4_20_21 <- cluster::pam(dados1_20_21, k = 4)
 
 
 ## Ward's method
@@ -549,153 +549,106 @@ plot(as.dendrogram(d1_average_20_21))
 
 ## Choosing the best clustering method
 ### 2018-2019
+#### Creating a function that calculates the considered indices
+avaliar_cluster_indices <- function(tipo_taxa, anos, kmeans_n, pam_n, ward_n) {
+  dados_nome <- paste0("dados", substr(tipo_taxa, 2, 2), "_", anos)
+  dist_nome <- paste0("dados", substr(tipo_taxa, 2, 2), "_", anos, "_dist")
+  
+  dados <- get(dados_nome)
+  dist <- get(dist_nome)
+  
+  # K-Means
+  kmeans_index <- data.frame(
+    method = unlist(lapply(kmeans_n, function(i) paste0("kmeans", i))),
+    db_index_cent = unlist(lapply(kmeans_n, function(i) {
+      index.DB(dados, get(paste0(tipo_taxa, "_kmeans", i, "_", anos))$cluster)$DB
+    })),
+    db_index_med = unlist(lapply(kmeans_n, function(i) {
+      index.DB(dados, get(paste0(tipo_taxa, "_kmeans", i, "_", anos))$cluster,
+               d = dist, centrotypes = "medoids")$DB
+    })),
+    dunn_index = unlist(lapply(kmeans_n, function(i) {
+      dunn(distance = dist, get(paste0(tipo_taxa, "_kmeans", i, "_", anos))$cluster)
+    })),
+    silh_index = unlist(lapply(kmeans_n, function(i) {
+      index.S(dist, get(paste0(tipo_taxa, "_kmeans", i, "_", anos))$cluster)
+    })),
+    ch_index_cent = unlist(lapply(kmeans_n, function(i) {
+      index.G1(dados, get(paste0(tipo_taxa, "_kmeans", i, "_", anos))$cluster)
+    })),
+    ch_index_med = unlist(lapply(kmeans_n, function(i) {
+      index.G1(dados, get(paste0(tipo_taxa, "_kmeans", i, "_", anos))$cluster,
+               d = dist, centrotypes = "medoids")
+    }))
+  )
+  
+  # K-medoids
+  pam_index <- data.frame(
+    method = unlist(lapply(pam_n, function(i) paste0("pam", i))),
+    db_index_cent = unlist(lapply(pam_n, function(i) {
+      index.DB(dados, get(paste0(tipo_taxa, "_pam", i, "_", anos))$cluster)$DB
+    })),
+    db_index_med = unlist(lapply(pam_n, function(i) {
+      index.DB(dados, get(paste0(tipo_taxa, "_pam", i, "_", anos))$cluster,
+               d = dist, centrotypes = "medoids")$DB
+    })),
+    dunn_index = unlist(lapply(pam_n, function(i) {
+      dunn(distance = dist, get(paste0(tipo_taxa, "_pam", i, "_", anos))$cluster)
+    })),
+    silh_index = unlist(lapply(pam_n, function(i) {
+      index.S(dist, get(paste0(tipo_taxa, "_pam", i, "_", anos))$cluster)
+    })),
+    ch_index_cent = unlist(lapply(pam_n, function(i) {
+      index.G1(dados, get(paste0(tipo_taxa, "_pam", i, "_", anos))$cluster)
+    })),
+    ch_index_med = unlist(lapply(pam_n, function(i) {
+      index.G1(dados, get(paste0(tipo_taxa, "_pam", i, "_", anos))$cluster,
+               d = dist, centrotypes = "medoids")
+    }))
+  )
+  
+  # Ward
+  ward_index <- data.frame(
+    method = unlist(lapply(ward_n, function(i) paste0("ward", i))),
+    db_index_cent = unlist(lapply(ward_n, function(i) {
+      index.DB(dados, get(paste0(tipo_taxa, "_ward", i, "_", anos, "_class")))$DB
+    })),
+    db_index_med = unlist(lapply(ward_n, function(i) {
+      index.DB(dados, get(paste0(tipo_taxa, "_ward", i, "_", anos, "_class")),
+               d = dist, centrotypes = "medoids")$DB
+    })),
+    dunn_index = unlist(lapply(ward_n, function(i) {
+      dunn(distance = dist, get(paste0(tipo_taxa, "_ward", i, "_", anos, "_class")))
+    })),
+    silh_index = unlist(lapply(ward_n, function(i) {
+      index.S(dist, get(paste0(tipo_taxa, "_ward", i, "_", anos, "_class")))
+    })),
+    ch_index_cent = unlist(lapply(ward_n, function(i) {
+      index.G1(dados, get(paste0(tipo_taxa, "_ward", i, "_", anos, "_class")))
+    })),
+    ch_index_med = unlist(lapply(ward_n, function(i) {
+      index.G1(dados, get(paste0(tipo_taxa, "_ward", i, "_", anos, "_class")),
+               d = dist, centrotypes = "medoids")
+    }))
+  )
+  
+  avaliacao <- rbind(pam_index, kmeans_index, ward_index)
+  colnames(avaliacao) <- c(
+    "Method", "Davies-Bouldin (centroid)", "Davies-Bouldin (medoid)",
+    "Dunn index", "Silhouette index", "Calinski-Harabasz (centroid)",
+    "Calinski-Harabasz (medoid)"
+  )
+  
+  return(avaliacao)
+}
+
 #### Calculating the considered indices
-d1_kmeans_index_18_19 <- data.frame(
-  method = unlist(lapply(3:4, function(i) paste0("kmeans", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados1_18_19, get(paste0("d1_kmeans", i, "_18_19"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados1_18_19,
-        get(paste0("d1_kmeans", i, "_18_19"))$cluster,
-        d = dados1_18_19_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados1_18_19_dist,
-        get(paste0("d1_kmeans", i, "_18_19"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados1_18_19_dist, get(paste0("d1_kmeans", i, "_18_19"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados1_18_19, get(paste0("d1_kmeans", i, "_18_19"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados1_18_19,
-        get(paste0("d1_kmeans", i, "_18_19"))$cluster,
-        d = dados1_18_19_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d1_pam_index_18_19 <- data.frame(
-  method = unlist(lapply(3:4, function(i) paste0("pam", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados1_18_19, get(paste0("d1_pam", i, "_18_19"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados1_18_19,
-        get(paste0("d1_pam", i, "_18_19"))$cluster,
-        d = dados1_18_19_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados1_18_19_dist,
-        get(paste0("d1_pam", i, "_18_19"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados1_18_19_dist, get(paste0("d1_pam", i, "_18_19"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados1_18_19, get(paste0("d1_pam", i, "_18_19"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados1_18_19,
-        get(paste0("d1_pam", i, "_18_19"))$cluster,
-        d = dados1_18_19_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d1_ward_index_18_19 <- data.frame(
-  method = unlist(lapply(2:3, function(i) paste0("ward", i))),
-  db_index_cent = unlist(lapply(
-    2:3,
-    function(i)
-      index.DB(dados1_18_19, get(paste0("d1_ward", i, "_18_19", "_class")))$DB
-  )),
-  db_index_med = unlist(lapply(
-    2:3,
-    function(i)
-      index.DB(
-        dados1_18_19,
-        get(paste0("d1_ward", i, "_18_19", "_class")),
-        d = dados1_18_19_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    2:3,
-    function(i)
-      dunn(
-        distance = dados1_18_19_dist,
-        get(paste0("d1_ward", i, "_18_19", "_class"))
-      )
-  )),
-  silh_index = unlist(lapply(
-    2:3,
-    function(i)
-      index.S(dados1_18_19_dist, get(paste0("d1_ward", i, "_18_19", "_class")))
-  )),
-  ch_index_cent = unlist(lapply(
-    2:3,
-    function(i)
-      index.G1(dados1_18_19, get(paste0("d1_ward", i, "_18_19", "_class")))
-  )),
-  ch_index_med = unlist(lapply(
-    2:3,
-    function(i)
-      index.G1(
-        dados1_18_19,
-        get(paste0("d1_ward", i, "_18_19", "_class")),
-        d = dados1_18_19_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-#### Printing the table
-d1_avaliacao_18_19 <- rbind(
-  d1_pam_index_18_19,
-  d1_kmeans_index_18_19,
-  d1_ward_index_18_19
+d1_avaliacao_18_19 <- avaliar_cluster_indices(
+  tipo_taxa = "d1",                                            
+  anos = "18_19",
+  kmeans_n = 3:4,
+  pam_n = 3:4,
+  ward_n = 2:3
 )
 saveRDS(d1_avaliacao_18_19, "r_objects/d1_avaliacao_18_19.RDS")
 
@@ -721,152 +674,12 @@ df_indicadores_18_19$cluster_10_a_14 <- factor(case_when(
 
 ### 2020-2021
 #### Calculating the considered indices
-d1_kmeans_index_20_21 <- data.frame(
-  metodo = unlist(lapply(3:4, function(i) paste0("kmeans", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados1_20_21, get(paste0("d1_kmeans", i, "_20_21"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados1_20_21,
-        get(paste0("d1_kmeans", i, "_20_21"))$cluster,
-        d = dados1_20_21_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados1_20_21_dist,
-        get(paste0("d1_kmeans", i, "_20_21"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados1_20_21_dist, get(paste0("d1_kmeans", i, "_20_21"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados1_20_21, get(paste0("d1_kmeans", i, "_20_21"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados1_20_21,
-        get(paste0("d1_kmeans", i, "_20_21"))$cluster,
-        d = dados1_20_21_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d1_pam_index_20_21 <- data.frame(
-  metodo = unlist(lapply(3:4, function(i) paste0("pam", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados1_20_21, get(paste0("d1_pam", i, "_20_21"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados1_20_21,
-        get(paste0("d1_pam", i, "_20_21"))$cluster,
-        d = dados1_20_21_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados1_20_21_dist,
-        get(paste0("d1_pam", i, "_20_21"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados1_20_21_dist, get(paste0("d1_pam", i, "_20_21"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados1_20_21, get(paste0("d1_pam", i, "_20_21"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados1_20_21,
-        get(paste0("d1_pam", i, "_20_21"))$cluster,
-        d = dados1_20_21_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d1_ward_index_20_21 <- data.frame(
-  metodo = unlist(lapply(c(2, 4), function(i) paste0("ward", i))),
-  db_index_cent = unlist(lapply(
-    c(2, 4),
-    function(i)
-      index.DB(dados1_20_21, get(paste0("d1_ward", i, "_20_21", "_class")))$DB
-  )),
-  db_index_med = unlist(lapply(
-    c(2, 4),
-    function(i)
-      index.DB(
-        dados1_20_21,
-        get(paste0("d1_ward", i, "_20_21", "_class")),
-        d = dados1_20_21_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    c(2, 4),
-    function(i)
-      dunn(
-        distance = dados1_20_21_dist,
-        get(paste0("d1_ward", i, "_20_21", "_class"))
-      )
-  )),
-  silh_index = unlist(lapply(
-    c(2, 4),
-    function(i)
-      index.S(dados1_20_21_dist, get(paste0("d1_ward", i, "_20_21", "_class")))
-  )),
-  ch_index_cent = unlist(lapply(
-    c(2, 4),
-    function(i)
-      index.G1(dados1_20_21, get(paste0("d1_ward", i, "_20_21", "_class")))
-  )),
-  ch_index_med = unlist(lapply(
-    c(2, 4),
-    function(i)
-      index.G1(
-        dados1_20_21,
-        get(paste0("d1_ward", i, "_20_21", "_class")),
-        d = dados1_20_21_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-#### Printing the table
-d1_avaliacao_20_21 <- rbind(
-  d1_pam_index_20_21,
-  d1_kmeans_index_20_21,
-  d1_ward_index_20_21
+d1_avaliacao_20_21 <- avaliar_cluster_indices(
+  tipo_taxa = "d1",
+  anos = "20_21",
+  kmeans_n = 3:4,
+  pam_n = 3:4,
+  ward_n = c(2, 4)
 )
 saveRDS(d1_avaliacao_20_21, "r_objects/d1_avaliacao_20_21.RDS")
 
@@ -894,12 +707,12 @@ df_indicadores_20_21$cluster_10_a_14 <- factor(case_when(
 # For the 15 to 19 age group
 ## K-Means
 ### 2018-2019
-#### Ploting the k-means knee-plot for the 2018-2019 period
+#### Ploting the K-Means knee-plot for the 2018-2019 period
 set.seed(1504)
 kneeplot_kmeans_15_19_18_19 <- fviz_nbclust(dados2_18_19, kmeans, method = "wss")
 saveRDS(kneeplot_kmeans_15_19_18_19, "r_objects/kneeplot_kmeans_15_19_18_19.RDS")
 
-#### Adjusting the k-means method with the chosen numbers of clusters
+#### Adjusting the K-Means method with the chosen numbers of clusters
 set.seed(1504)
 d2_kmeans3_18_19 <- kmeans(dados2_18_19, 3)
 
@@ -907,12 +720,12 @@ set.seed(1504)
 d2_kmeans4_18_19 <- kmeans(dados2_18_19, 4)
 
 ### 2020-2021
-#### Ploting the k-means knee-plot for the 2020-2021 period
+#### Ploting the K-Means knee-plot for the 2020-2021 period
 set.seed(1504)
 kneeplot_kmeans_15_19_20_21 <- fviz_nbclust(dados2_20_21, kmeans, method = "wss")
 saveRDS(kneeplot_kmeans_15_19_20_21, "r_objects/kneeplot_kmeans_15_19_20_21.RDS")
 
-#### Adjusting the k-means method with the chosen numbers of clusters
+#### Adjusting the K-Means method with the chosen numbers of clusters
 set.seed(1504)
 d2_kmeans3_20_21 <- kmeans(dados2_20_21, 3)
 
@@ -929,7 +742,7 @@ saveRDS(kneeplot_kmedians_15_19_18_19, "r_objects/kneeplot_kmedians_15_19_18_19.
 
 #### Adjusting the k-medians method with the chosen numbers of clusters
 set.seed(1504)
-d2_pam3_18_19 <- cluster::pam(dados2_18_19, k = 3)
+d2_kmedoids3_18_19 <- cluster::pam(dados2_18_19, k = 3)
 
 ### 2020-2021
 #### Ploting the k-medoids knee-plot for the 2020-2021 period
@@ -939,10 +752,10 @@ saveRDS(kneeplot_kmedians_15_19_20_21, "r_objects/kneeplot_kmedians_15_19_20_21.
 
 #### Adjusting the k-medians method with the chosen numbers of clusters
 set.seed(1504)
-d2_pam3_20_21 <- cluster::pam(dados2_20_21, k = 3)
+d2_kmedoids3_20_21 <- cluster::pam(dados2_20_21, k = 3)
 
 set.seed(1504)
-d2_pam4_20_21 <- cluster::pam(dados2_20_21, k = 4)
+d2_kmedoids4_20_21 <- cluster::pam(dados2_20_21, k = 4)
 
 
 ## Ward's method
@@ -950,8 +763,7 @@ d2_pam4_20_21 <- cluster::pam(dados2_20_21, k = 4)
 #### Ploting the drodrogram for Ward's method for the 2018-2019 period
 set.seed(1504)
 d2_ward_18_19 <- hclust(dados2_18_19_dist, method = "ward.D2")
-plot(as.dendrogram(d2_ward_18_19), ylab = "Altura")
-rect.hclust(d2_ward_18_19, k = 3, border = 2:5)
+plot(as.dendrogram(d2_ward_18_19))
 
 #### Adjusting Ward's method with the chosen numbers of clusters
 d2_ward3_18_19_class <- cutree(d2_ward_18_19, k = 3)
@@ -960,8 +772,7 @@ d2_ward3_18_19_class <- cutree(d2_ward_18_19, k = 3)
 #### Ploting the drodrogram for Ward's method for the 2020-2021 period
 set.seed(1504)
 d2_ward_20_21 <- hclust(dados2_20_21_dist, method = "ward.D2")
-plot(as.dendrogram(d2_ward_20_21), ylab = "Altura")
-rect.hclust(d2_ward_20_21, k = 3, border = 2:5)
+plot(as.dendrogram(d2_ward_20_21))
 
 #### Adjusting Ward's method with the chosen numbers of clusters
 d2_ward3_20_21_class <- cutree(d2_ward_20_21, k = 3)
@@ -1012,152 +823,12 @@ plot(as.dendrogram(d2_average_20_21))
 ## Choosing the best clustering method
 ### 2018-2019
 #### Calculating the considered indices
-d2_kmeans_index_18_19 <- data.frame(
-  metodo = unlist(lapply(3:4, function(i) paste0("kmeans", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados2_18_19, get(paste0("d2_kmeans", i, "_18_19"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados2_18_19,
-        get(paste0("d2_kmeans", i, "_18_19"))$cluster,
-        d = dados2_18_19_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados2_18_19_dist,
-        get(paste0("d2_kmeans", i, "_18_19"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados2_18_19_dist, get(paste0("d2_kmeans", i, "_18_19"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados2_18_19, get(paste0("d2_kmeans", i, "_18_19"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados2_18_19,
-        get(paste0("d2_kmeans", i, "_18_19"))$cluster,
-        d = dados2_18_19_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d2_pam_index_18_19 <- data.frame(
-  metodo = unlist(lapply(3, function(i) paste0("pam", i))),
-  db_index_cent = unlist(lapply(
-    3,
-    function(i)
-      index.DB(dados2_18_19, get(paste0("d2_pam", i, "_18_19"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3,
-    function(i)
-      index.DB(
-        dados2_18_19,
-        get(paste0("d2_pam", i, "_18_19"))$cluster,
-        d = dados2_18_19_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3,
-    function(i)
-      dunn(
-        distance = dados2_18_19_dist,
-        get(paste0("d2_pam", i, "_18_19"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3,
-    function(i)
-      index.S(dados2_18_19_dist, get(paste0("d2_pam", i, "_18_19"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3,
-    function(i)
-      index.G1(dados2_18_19, get(paste0("d2_pam", i, "_18_19"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3,
-    function(i)
-      index.G1(
-        dados2_18_19,
-        get(paste0("d2_pam", i, "_18_19"))$cluster,
-        d = dados2_18_19_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d2_ward_index_18_19 <- data.frame(
-  metodo = unlist(lapply(3, function(i) paste0("ward", i))),
-  db_index_cent = unlist(lapply(
-    3,
-    function(i)
-      index.DB(dados2_18_19, get(paste0("d2_ward", i, "_18_19", "_class")))$DB
-  )),
-  db_index_med = unlist(lapply(
-    3,
-    function(i)
-      index.DB(
-        dados2_18_19,
-        get(paste0("d2_ward", i, "_18_19", "_class")),
-        d = dados2_18_19_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3,
-    function(i)
-      dunn(
-        distance = dados2_18_19_dist,
-        get(paste0("d2_ward", i, "_18_19", "_class"))
-      )
-  )),
-  silh_index = unlist(lapply(
-    3,
-    function(i)
-      index.S(dados2_18_19_dist, get(paste0("d2_ward", i, "_18_19", "_class")))
-  )),
-  ch_index_cent = unlist(lapply(
-    3,
-    function(i)
-      index.G1(dados2_18_19, get(paste0("d2_ward", i, "_18_19", "_class")))
-  )),
-  ch_index_med = unlist(lapply(
-    3,
-    function(i)
-      index.G1(
-        dados2_18_19,
-        get(paste0("d2_ward", i, "_18_19", "_class")),
-        d = dados2_18_19_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-#### Printing the table
-d2_avaliacao_18_19 <- rbind(
-  d2_pam_index_18_19,
-  d2_kmeans_index_18_19,
-  d2_ward_index_18_19
+d2_avaliacao_18_19 <- avaliar_cluster_indices(
+  tipo_taxa = "d2",
+  anos = "18_19",
+  kmeans_n = 3:4,
+  pam_n = 3,
+  ward_n = 3
 )
 saveRDS(d2_avaliacao_18_19, "r_objects/d2_avaliacao_18_19.RDS")
 
@@ -1183,152 +854,12 @@ df_indicadores_18_19$cluster_15_a_19 <- factor(case_when(
 
 ### 2020-2021
 #### Calculating the considered indices
-d2_kmeans_index_20_21 <- data.frame(
-  metodo = unlist(lapply(3:4, function(i) paste0("kmeans", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados2_20_21, get(paste0("d2_kmeans", i, "_20_21"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados2_20_21,
-        get(paste0("d2_kmeans", i, "_20_21"))$cluster,
-        d = dados2_20_21_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados2_20_21_dist,
-        get(paste0("d2_kmeans", i, "_20_21"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados2_20_21_dist, get(paste0("d2_kmeans", i, "_20_21"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados2_20_21, get(paste0("d2_kmeans", i, "_20_21"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados2_20_21,
-        get(paste0("d2_kmeans", i, "_20_21"))$cluster,
-        d = dados2_20_21_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d2_pam_index_20_21 <- data.frame(
-  metodo = unlist(lapply(3:4, function(i) paste0("pam", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados2_20_21, get(paste0("d2_pam", i, "_20_21"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados2_20_21,
-        get(paste0("d2_pam", i, "_20_21"))$cluster,
-        d = dados2_20_21_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados2_20_21_dist,
-        get(paste0("d2_pam", i, "_20_21"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados2_20_21_dist, get(paste0("d2_pam", i, "_20_21"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados2_20_21, get(paste0("d2_pam", i, "_20_21"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados2_20_21,
-        get(paste0("d2_pam", i, "_20_21"))$cluster,
-        d = dados2_20_21_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d2_ward_index_20_21 <- data.frame(
-  metodo = unlist(lapply(3, function(i) paste0("ward", i))),
-  db_index_cent = unlist(lapply(
-    3,
-    function(i)
-      index.DB(dados2_20_21, get(paste0("d2_ward", i, "_20_21", "_class")))$DB
-  )),
-  db_index_med = unlist(lapply(
-    3,
-    function(i)
-      index.DB(
-        dados2_20_21,
-        get(paste0("d2_ward", i, "_20_21", "_class")),
-        d = dados2_20_21_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3,
-    function(i)
-      dunn(
-        distance = dados2_20_21_dist,
-        get(paste0("d2_ward", i, "_20_21", "_class"))
-      )
-  )),
-  silh_index = unlist(lapply(
-    3,
-    function(i)
-      index.S(dados2_20_21_dist, get(paste0("d2_ward", i, "_20_21", "_class")))
-  )),
-  ch_index_cent = unlist(lapply(
-    3,
-    function(i)
-      index.G1(dados2_20_21, get(paste0("d2_ward", i, "_20_21", "_class")))
-  )),
-  ch_index_med = unlist(lapply(
-    3,
-    function(i)
-      index.G1(
-        dados2_20_21,
-        get(paste0("d2_ward", i, "_20_21", "_class")),
-        d = dados2_20_21_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-#### Printing the table
-d2_avaliacao_20_21 <- rbind(
-  d2_pam_index_20_21,
-  d2_kmeans_index_20_21,
-  d2_ward_index_20_21
+d2_avaliacao_20_21 <- avaliar_cluster_indices(
+  tipo_taxa = "d2",
+  anos = "20_21",
+  kmeans_n = 3:4,
+  pam_n = 3:4,
+  ward_n = 3
 )
 saveRDS(d2_avaliacao_20_21, "r_objects/d2_avaliacao_20_21.RDS")
 
@@ -1419,7 +950,9 @@ ggsave(
 )
 ```
 
-This stage of the analysis aimed to find four different groupings for Brazilian municipalities: one that took into account the fertility rate of women aged 10 to 14 in the period from 2018 to 2019; one that took into account this same rate, but in the period from 2020 to 2021; one that took into account the fertility rate of women aged 15 to 19 in the period from 2018 to 2019; and one that considered this same rate, but in the period from 2020 to 2021. To this end, we adjusted non-hierarchical methods (K-means and K-medoids) and hierarchical methods (Ward, single linkage, complete linkage and average linkage). For the non-hierarchical methods, we chose candidates for the number of groups using the knee plot. For the hierarchical methods, we chose candidates for the number of groups using dendrograms. We compared the chosen candidates using the Davies-Bouldin, Dunn, Silhouette and Calinski-Harabasz indices, and chose as final clusters those that presented the best average performance in these metrics (as long as the number of observations in each cluster is adequate). Finally, after determining the four different groupings, we compared, for each grouping, the behavior of some variables of interest in each cluster formed.
+This stage of the analysis aimed to find four different groupings for Brazilian municipalities: one that took into account the fertility rate of women aged 10 to 14 in the period from 2018 to 2019; one that took into account this same rate, but in the period from 2020 to 2021; one that took into account the fertility rate of women aged 15 to 19 in the period from 2018 to 2019; and one that considered this same rate, but in the period from 2020 to 2021. To this end, we adjusted non-hierarchical methods (K-Means and K-medoids) and hierarchical methods (Ward, single linkage, complete linkage and average linkage). For the non-hierarchical methods, we chose candidates for the number of groups using the knee plot. For the hierarchical methods, we chose candidates for the number of groups using dendrograms. We compared the chosen candidates using the Davies-Bouldin, Dunn, Silhouette and Calinski-Harabasz indices, and chose as final clusters those that presented the best average performance in these metrics (as long as the number of observations in each cluster is adequate). Finally, after determining the four different groupings, we compared, for each grouping, the behavior of some variables of interest in each cluster formed.
+
+## Preparing the data
 
 ```{r}
 # Preparing the data
@@ -1503,21 +1036,22 @@ dados2_20_21_dist <- dist(dados2_20_21, method = "euclidean")
 
 \phantom{}
 
+The K-Means knee plot for the 2018-2019 period and 10 to 14 age group can be seen in **Figure \@ref(fig:kmeans-18-19-10-14)**.
+
 ```{r eval=FALSE}
-# Ploting the k-means knee-plot for the 2018-2019 period
+# Ploting the K-Means knee-plot for the 2018-2019 period
 fviz_nbclust(dados1_18_19, kmeans, method = "wss")
 ```
 
-```{r echo=FALSE, fig.cap="K-Means knee-plot for the 10 to 14 age group and 2018-2019 period"}
+```{r kmeans-18-19-10-14, echo=FALSE, fig.cap="K-Means knee-plot for the 10 to 14 age group and 2018-2019 period"}
 readRDS("r_objects/kneeplot_kmeans_10_14_18_19.RDS")
 ```
-
 
 
 - **Candidates:** K = 3 and K = 4 (an argument that the total within-group variance does not decrease significantly after these values can be made for both numbers of groups).
 
 ```{r}
-# Adjusting the k-means method with the chosen numbers of clusters
+# Adjusting the K-Means method with the chosen numbers of clusters
 set.seed(1504)
 d1_kmeans3_18_19 <- kmeans(dados1_18_19, 3)
 
@@ -1530,21 +1064,21 @@ d1_kmeans4_18_19 <- kmeans(dados1_18_19, 4)
 
 \phantom{}
 
+The K-Means knee plot for the 2020-2021 period and 10 to 14 age group can be seen in **Figure \@ref(fig:kmeans-20-21-10-14)**.
+
 ```{r eval=FALSE}
-# Ploting the k-means knee-plot for the 2020-2021 period
+# Ploting the K-Means knee-plot for the 2020-2021 period
 fviz_nbclust(dados1_20_21, kmeans, method = "wss")
 ```
 
-```{r echo=FALSE, fig.cap="K-Means knee-plot for the 10 to 14 age group and 2020-2021 period"}
+```{r kmeans-20-21-10-14, echo=FALSE, fig.cap="K-Means knee-plot for the 10 to 14 age group and 2020-2021 period"}
 readRDS("r_objects/kneeplot_kmeans_10_14_20_21.RDS")
 ```
-
-
 
 - **Candidates:** K = 3 and K = 4 (an argument that the total within-group variance does not decrease significantly after these values can be made for both numbers of groups).
 
 ```{r}
-# Adjusting the k-means method with the chosen numbers of clusters
+# Adjusting the K-Means method with the chosen numbers of clusters
 set.seed(1504)
 d1_kmeans3_20_21 <- kmeans(dados1_20_21, 3)
 
@@ -1558,52 +1092,52 @@ d1_kmeans4_20_21 <- kmeans(dados1_20_21, 4)
 
 \phantom{}
 
+The K-Medians knee plot for the 2018-2019 period and 10 to 14 age group can be seen in **Figure \@ref(fig:kmedians-18-19-10-14)**.
+
 ```{r eval=FALSE}
 # Ploting the k-medians knee-plots for the 2018-2019 period
 fviz_nbclust(dados1_18_19, cluster::pam, method = "wss")
 ```
 
-```{r echo=FALSE, fig.cap = "K-Medians knee-plot for the 10 to 14 age group and 2018-2019 period"}
+```{r kmedians-18-19-10-14, echo=FALSE, fig.cap = "K-Medians knee-plot for the 10 to 14 age group and 2018-2019 period"}
 readRDS("r_objects/kneeplot_kmedians_10_14_18_19.RDS")
 ```
-
-
 
 - **Candidates:** K = 3 and K = 4 (an argument that the total within-group variance does not decrease significantly after these values can be made for both numbers of groups).
 
 ```{r}
 # Adjusting the k-medians method with the chosen numbers of clusters
 set.seed(1504)
-d1_pam3_18_19 <- cluster::pam(dados1_18_19, k = 3)
+d1_kmedoids3_18_19 <- cluster::pam(dados1_18_19, k = 3)
 
 set.seed(1504)
-d1_pam4_18_19 <- cluster::pam(dados1_18_19, k = 4)
+d1_kmedoids4_18_19 <- cluster::pam(dados1_18_19, k = 4)
 ```
 
 #### 2020-2021
 
 \phantom{}
 
+The K-Medians knee plot for the 2020-2021 period and 10 to 14 age group can be seen in **Figure \@ref(fig:kmedians-20-21-10-14)**.
+
 ```{r eval=FALSE}
 # Ploting the k-medians knee-plots for the 2020-2021 period
 fviz_nbclust(dados1_20_21, cluster::pam, method = "wss")
 ```
 
-```{r echo=FALSE, fig.cap = "K-Medians knee-plot for the 10 to 14 age group and 2020-2021 period"}
+```{r kmedians-20-21-10-14, echo=FALSE, fig.cap = "K-Medians knee-plot for the 10 to 14 age group and 2020-2021 period"}
 readRDS("r_objects/kneeplot_kmedians_10_14_20_21.RDS")
 ```
-
-
 
 - **Candidates:** K = 3 and K = 4 (an argument that the total within-group variance does not decrease significantly after these values can be made for both numbers of groups).
 
 ```{r}
 # Adjusting the k-medians method with the chosen numbers of clusters
 set.seed(1504)
-d1_pam3_20_21 <- cluster::pam(dados1_20_21, k = 3)
+d1_kmedoids3_20_21 <- cluster::pam(dados1_20_21, k = 3)
 
 set.seed(1504)
-d1_pam4_20_21 <- cluster::pam(dados1_20_21, k = 4)
+d1_kmedoids4_20_21 <- cluster::pam(dados1_20_21, k = 4)
 ```
 
 ### Ward's method
@@ -1612,14 +1146,14 @@ d1_pam4_20_21 <- cluster::pam(dados1_20_21, k = 4)
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for Ward's method for the 10 to 14 age group and 2018-2019 period"}
+The dendrogram for Ward's method for the 2018-2019 period and 10 to 14 age group can be seen in **Figure \@ref(fig:ward-18-19-10-14)**.
+
+```{r ward-18-19-10-14, fig.cap="Dendrogram for Ward's method for the 10 to 14 age group and 2018-2019 period"}
 # Ploting the drodrogram for the 2018-2019 period
 set.seed(1504)
 d1_ward_18_19 <- hclust(dados1_18_19_dist, method = "ward.D2")
 plot(as.dendrogram(d1_ward_18_19))
 ```
-
-
 
 - **Candidates:** K = 2 and K = 3.
 
@@ -1633,14 +1167,14 @@ d1_ward3_18_19_class <- cutree(d1_ward_18_19, k = 3)
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for Ward's method for the 10 to 14 age group and 2020-2021 period"}
+The dendrogram for Ward's method for the 2020-2021 period and 10 to 14 age group can be seen in **Figure \@ref(fig:ward-20-21-10-14)**.
+
+```{r ward-20-21-10-14, fig.cap="Dendrogram for Ward's method for the 10 to 14 age group and 2020-2021 period"}
 # Ploting the drodrogram for the 2020-2021 period
 set.seed(1504)
 d1_ward_20_21 <- hclust(dados1_20_21_dist, method = "ward.D2")
 plot(as.dendrogram(d1_ward_20_21))
 ```
-
-
 
 - **Candidates:** K = 2 and K = 4.
 
@@ -1656,7 +1190,9 @@ d1_ward4_20_21_class <- cutree(d1_ward_20_21, k = 4)
 
 \phantom{}
 
-```{r fig.cap = "Dendrogram for the single linkage method for the 10 to 14 age group and 2018-2019 period"}
+The dendrogram for the single linkage method for the 2018-2019 period and 10 to 14 age group can be seen in **Figure \@ref(fig:single-18-19-10-14)**.
+
+```{r single-18-19-10-14, fig.cap = "Dendrogram for the single linkage method for the 10 to 14 age group and 2018-2019 period"}
 # Ploting the dendrogram for the 2018-2019 period
 set.seed(1504)
 d1_single_18_19 <- hclust(dados1_18_19_dist, method = "single")
@@ -1671,7 +1207,9 @@ plot(as.dendrogram(d1_single_18_19))
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for the single linkage method for the 10 to 14 age group and 2020-2021 period"}
+The dendrogram for the single linkage method for the 2020-2021 period and 10 to 14 age group can be seen in **Figure \@ref(fig:single-20-21-10-14)**.
+
+```{r single-20-21-10-14, fig.cap="Dendrogram for the single linkage method for the 10 to 14 age group and 2020-2021 period"}
 # Ploting the dendrogram for the 2020-2021 period
 set.seed(1504)
 d1_single_20_21 <- hclust(dados1_20_21_dist, method = "single")
@@ -1688,7 +1226,9 @@ plot(as.dendrogram(d1_single_20_21))
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for the complete linkage method for the 10 to 14 age group and 2018-2019 period"}
+The dendrogram for the complete linkage method for the 2018-2019 period and 10 to 14 age group can be seen in **Figure \@ref(fig:complete-18-19-10-14)**.
+
+```{r complete-18-19-10-14, fig.cap="Dendrogram for the complete linkage method for the 10 to 14 age group and 2018-2019 period"}
 # Ploting the dendrogram for the complete linkage method for the 2018-2019 period
 set.seed(1504)
 d1_complete_18_19 <- hclust(dados1_18_19_dist, method = "complete")
@@ -1703,7 +1243,9 @@ plot(as.dendrogram(d1_complete_18_19))
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for the complete linkage method for the 10 to 14 age group and 2020-2021 period"}
+The dendrogram for the complete linkage method for the 2020-2021 period and 10 to 14 age group can be seen in **Figure \@ref(fig:complete-20-21-10-14)**.
+
+```{r complete-20-21-10-14, fig.cap="Dendrogram for the complete linkage method for the 10 to 14 age group and 2020-2021 period"}
 # Ploting the dendrogram for the complete linkage method for the 2020-2021 period
 set.seed(1504)
 d1_complete_20_21 <- hclust(dados1_20_21_dist, method = "complete")
@@ -1720,14 +1262,14 @@ plot(as.dendrogram(d1_complete_20_21))
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for the average linkage method for the 10 to 14 age group and 2018-2019 period"}
+The dendrogram for the average linkage method for the 2018-2019 period and 10 to 14 age group can be seen in **Figure \@ref(fig:average-18-19-10-14)**.
+
+```{r average-18-19-10-14, fig.cap="Dendrogram for the average linkage method for the 10 to 14 age group and 2018-2019 period"}
 # Ploting the dendrogram for the average linkage method for the 2018-2019 period
 set.seed(1504)
 d1_average_18_19 <- hclust(dados1_18_19_dist, method = "average")
 plot(as.dendrogram(d1_average_18_19))
 ```
-
-
 
 - **Candidates:** No candidates. A bad fit overall.
 
@@ -1735,7 +1277,9 @@ plot(as.dendrogram(d1_average_18_19))
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for the average linkage method for the 10 to 14 age group and 2020-2021 period"}
+The dendrogram for the average linkage method for the 2020-2021 period and 10 to 14 age group can be seen in **Figure \@ref(fig:average-20-21-10-14)**.
+
+```{r average-20-21-10-14, fig.cap="Dendrogram for the average linkage method for the 10 to 14 age group and 2020-2021 period"}
 # Ploting the dendrogram for the average linkage method for the 2020-2021 period
 set.seed(1504)
 d1_average_20_21 <- hclust(dados1_20_21_dist, method = "average")
@@ -1743,196 +1287,163 @@ plot(as.dendrogram(d1_average_20_21))
 ```
 
 
-
 - **Candidates:** No candidates. A bad fit overall.
 
 ### Choosing the best clustering method
+
+The code below contains a function that calculates the evaluation indices for each number of clusters and candidate method.
+
+```{r eval=FALSE}
+# Creating a function that calculates the considered indices
+avaliar_cluster_indices <- function(tipo_taxa, anos, kmeans_n, pam_n, ward_n) {
+  dados_nome <- paste0("dados", substr(tipo_taxa, 2, 2), "_", anos)
+  dist_nome <- paste0("dados", substr(tipo_taxa, 2, 2), "_", anos, "_dist")
+  
+  dados <- get(dados_nome)
+  dist <- get(dist_nome)
+  
+  # K-Means
+  kmeans_index <- data.frame(
+    method = unlist(lapply(kmeans_n, function(i) paste0("kmeans", i))),
+    db_index_cent = unlist(lapply(kmeans_n, function(i) {
+      index.DB(dados, get(paste0(tipo_taxa, "_kmeans", i, "_", anos))$cluster)$DB
+    })),
+    db_index_med = unlist(lapply(kmeans_n, function(i) {
+      index.DB(dados, get(paste0(tipo_taxa, "_kmeans", i, "_", anos))$cluster,
+               d = dist, centrotypes = "medoids")$DB
+    })),
+    dunn_index = unlist(lapply(kmeans_n, function(i) {
+      dunn(distance = dist, get(paste0(tipo_taxa, "_kmeans", i, "_", anos))$cluster)
+    })),
+    silh_index = unlist(lapply(kmeans_n, function(i) {
+      index.S(dist, get(paste0(tipo_taxa, "_kmeans", i, "_", anos))$cluster)
+    })),
+    ch_index_cent = unlist(lapply(kmeans_n, function(i) {
+      index.G1(dados, get(paste0(tipo_taxa, "_kmeans", i, "_", anos))$cluster)
+    })),
+    ch_index_med = unlist(lapply(kmeans_n, function(i) {
+      index.G1(dados, get(paste0(tipo_taxa, "_kmeans", i, "_", anos))$cluster,
+               d = dist, centrotypes = "medoids")
+    }))
+  )
+  
+  # K-Medoids
+  pam_index <- data.frame(
+    method = unlist(lapply(pam_n, function(i) paste0("pam", i))),
+    db_index_cent = unlist(lapply(pam_n, function(i) {
+      index.DB(dados, get(paste0(tipo_taxa, "_pam", i, "_", anos))$cluster)$DB
+    })),
+    db_index_med = unlist(lapply(pam_n, function(i) {
+      index.DB(dados, get(paste0(tipo_taxa, "_pam", i, "_", anos))$cluster,
+               d = dist, centrotypes = "medoids")$DB
+    })),
+    dunn_index = unlist(lapply(pam_n, function(i) {
+      dunn(distance = dist, get(paste0(tipo_taxa, "_pam", i, "_", anos))$cluster)
+    })),
+    silh_index = unlist(lapply(pam_n, function(i) {
+      index.S(dist, get(paste0(tipo_taxa, "_pam", i, "_", anos))$cluster)
+    })),
+    ch_index_cent = unlist(lapply(pam_n, function(i) {
+      index.G1(dados, get(paste0(tipo_taxa, "_pam", i, "_", anos))$cluster)
+    })),
+    ch_index_med = unlist(lapply(pam_n, function(i) {
+      index.G1(dados, get(paste0(tipo_taxa, "_pam", i, "_", anos))$cluster,
+               d = dist, centrotypes = "medoids")
+    }))
+  )
+  
+  # Ward
+  ward_index <- data.frame(
+    method = unlist(lapply(ward_n, function(i) paste0("ward", i))),
+    db_index_cent = unlist(lapply(ward_n, function(i) {
+      index.DB(dados, get(paste0(tipo_taxa, "_ward", i, "_", anos, "_class")))$DB
+    })),
+    db_index_med = unlist(lapply(ward_n, function(i) {
+      index.DB(dados, get(paste0(tipo_taxa, "_ward", i, "_", anos, "_class")),
+               d = dist, centrotypes = "medoids")$DB
+    })),
+    dunn_index = unlist(lapply(ward_n, function(i) {
+      dunn(distance = dist, get(paste0(tipo_taxa, "_ward", i, "_", anos, "_class")))
+    })),
+    silh_index = unlist(lapply(ward_n, function(i) {
+      index.S(dist, get(paste0(tipo_taxa, "_ward", i, "_", anos, "_class")))
+    })),
+    ch_index_cent = unlist(lapply(ward_n, function(i) {
+      index.G1(dados, get(paste0(tipo_taxa, "_ward", i, "_", anos, "_class")))
+    })),
+    ch_index_med = unlist(lapply(ward_n, function(i) {
+      index.G1(dados, get(paste0(tipo_taxa, "_ward", i, "_", anos, "_class")),
+               d = dist, centrotypes = "medoids")
+    }))
+  )
+  
+  avaliacao <- rbind(pam_index, kmeans_index, ward_index)
+    colnames(avaliacao) <- c(
+    "Method", "Davies-Bouldin (centroid)", "Davies-Bouldin (medoid)",
+    "Dunn index", "Silhouette index", "Calinski-Harabasz (centroid)",
+    "Calinski-Harabasz (medoid)"
+  )
+  return(avaliacao)
+}
+```
 
 #### 2018-2019
 
 \phantom{}
 
+The evaluation indices of the candidate clusterings for the 2018-2019 period and 10 to 14 age group can be seen in **Table \@ref(tab:indices-18-19-10-14)**.
+
 ```{r eval=FALSE}
 # Calculating the considered indices
-d1_kmeans_index_18_19 <- data.frame(
-  method = unlist(lapply(3:4, function(i) paste0("kmeans", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados1_18_19, get(paste0("d1_kmeans", i, "_18_19"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados1_18_19,
-        get(paste0("d1_kmeans", i, "_18_19"))$cluster,
-        d = dados1_18_19_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados1_18_19_dist,
-        get(paste0("d1_kmeans", i, "_18_19"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados1_18_19_dist, get(paste0("d1_kmeans", i, "_18_19"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados1_18_19, get(paste0("d1_kmeans", i, "_18_19"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados1_18_19,
-        get(paste0("d1_kmeans", i, "_18_19"))$cluster,
-        d = dados1_18_19_dist,
-        centrotypes = "medoids"
-      )
-  ))
+d1_avaliacao_18_19 <- avaliar_cluster_indices(
+  tipo_taxa = "d1",                                            
+  anos = "18_19",
+  kmeans_n = 3:4,
+  pam_n = 3:4,
+  ward_n = 2:3
 )
 
-d1_pam_index_18_19 <- data.frame(
-  method = unlist(lapply(3:4, function(i) paste0("pam", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados1_18_19, get(paste0("d1_pam", i, "_18_19"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados1_18_19,
-        get(paste0("d1_pam", i, "_18_19"))$cluster,
-        d = dados1_18_19_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados1_18_19_dist,
-        get(paste0("d1_pam", i, "_18_19"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados1_18_19_dist, get(paste0("d1_pam", i, "_18_19"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados1_18_19, get(paste0("d1_pam", i, "_18_19"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados1_18_19,
-        get(paste0("d1_pam", i, "_18_19"))$cluster,
-        d = dados1_18_19_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d1_ward_index_18_19 <- data.frame(
-  method = unlist(lapply(2:3, function(i) paste0("ward", i))),
-  db_index_cent = unlist(lapply(
-    2:3,
-    function(i)
-      index.DB(dados1_18_19, get(paste0("d1_ward", i, "_18_19", "_class")))$DB
-  )),
-  db_index_med = unlist(lapply(
-    2:3,
-    function(i)
-      index.DB(
-        dados1_18_19,
-        get(paste0("d1_ward", i, "_18_19", "_class")),
-        d = dados1_18_19_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    2:3,
-    function(i)
-      dunn(
-        distance = dados1_18_19_dist,
-        get(paste0("d1_ward", i, "_18_19", "_class"))
-      )
-  )),
-  silh_index = unlist(lapply(
-    2:3,
-    function(i)
-      index.S(dados1_18_19_dist, get(paste0("d1_ward", i, "_18_19", "_class")))
-  )),
-  ch_index_cent = unlist(lapply(
-    2:3,
-    function(i)
-      index.G1(dados1_18_19, get(paste0("d1_ward", i, "_18_19", "_class")))
-  )),
-  ch_index_med = unlist(lapply(
-    2:3,
-    function(i)
-      index.G1(
-        dados1_18_19,
-        get(paste0("d1_ward", i, "_18_19", "_class")),
-        d = dados1_18_19_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-# Printing the table
-d1_avaliacao_18_19 <- rbind(
-  d1_pam_index_18_19,
-  d1_kmeans_index_18_19,
-  d1_ward_index_18_19
-)
 d1_avaliacao_18_19 |>
-  kable() |>
+  kable(
+    caption = "Evaluation indices of the candidate clusterings for the 2018-2019 
+    period and 10 to 14 age group.",
+    align = "cccccc"
+  ) |>
   kable_styling(latex_options = c("scale_down", "HOLD_position")) |>
-  row_spec(0, bold = TRUE)
+  row_spec(0, bold = TRUE) |>
+  column_spec(2:7, width = "2cm")
 ```
 
-```{r echo=FALSE}
+```{r indices-18-19-10-14, echo=FALSE}
 readRDS("r_objects/d1_avaliacao_18_19.RDS") |>
-  kable() |>
+  kable(
+    caption = "Evaluation indices of the candidate clusterings for the 2018-2019 
+    period and 10 to 14 age group.",
+    align = "cccccc"
+  ) |>
   kable_styling(latex_options = c("scale_down", "HOLD_position")) |>
-  row_spec(0, bold = TRUE)
-
+  row_spec(0, bold = TRUE) |>
+  column_spec(2:7, width = "2cm")
 ```
 
 
 **Comments:**
 
-* db_index_cent: the lower the better (kmeans4, followed by pam4);
-* db_index_med: the lower the better (kmeans3, followed by pam3 and kmeans4);
+* db_index_cent: the lower the better (kmeans4, followed by kmedoids4);
+* db_index_med: the lower the better (kmeans3, followed by kmedoids3 and kmeans4);
 * dunn_index: the higher the better (kmeans4, followed by ward3 and kmeans3);
-* silh_index: the higher the better (ward2, followed by pam4, kmeans4 and kmeans3);
+* silh_index: the higher the better (ward2, followed by kmedoids4, kmeans4 and kmeans3);
 * ch_index_cent: the higher the better (kmeans4, followed by kmeans3);
 * ch_index_med: the higher the better (kmeans4, followed by kmeans3).
 
-**Choice:** despite the better perfomance of k-means with K = 4, one of its clusters contained only a few municipalities (127).
+**Choice:** despite the better perfomance of K-Means with K = 4, one of its clusters contained only a few municipalities (127).
 
 ```{r}
 d1_kmeans4_18_19$size
 d1_kmeans3_18_19$size
 ```
 
-Thus, the chosen method is the **k-means with K = 3**, since it presented the best Davies-Bouldin (medoid) index, the second best Calinski-Harabasz indexes and good Dunn and Silhouette indexes.
+Thus, the chosen method is the **K-Means with K = 3**, since it presented the best Davies-Bouldin (medoid) index, the second best Calinski-Harabasz indices and good Dunn and Silhouette indices.
 
 ```{r}
 # Adding the column with the clusters information to the original dataframe
@@ -1961,165 +1472,39 @@ df_indicadores_18_19$cluster_10_a_14 <- factor(case_when(
 
 \phantom{}
 
+The evaluation indices of the candidate clusterings for the 2020-2021 period and 10 to 14 age group can be seen in **Table \@ref(tab:indices-20-21-10-14)**.
+
 ```{r eval=FALSE}
 # Calculating the considered indices
-d1_kmeans_index_20_21 <- data.frame(
-  metodo = unlist(lapply(3:4, function(i) paste0("kmeans", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados1_20_21, get(paste0("d1_kmeans", i, "_20_21"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados1_20_21,
-        get(paste0("d1_kmeans", i, "_20_21"))$cluster,
-        d = dados1_20_21_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados1_20_21_dist,
-        get(paste0("d1_kmeans", i, "_20_21"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados1_20_21_dist, get(paste0("d1_kmeans", i, "_20_21"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados1_20_21, get(paste0("d1_kmeans", i, "_20_21"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados1_20_21,
-        get(paste0("d1_kmeans", i, "_20_21"))$cluster,
-        d = dados1_20_21_dist,
-        centrotypes = "medoids"
-      )
-  ))
+d1_avaliacao_20_21 <- avaliar_cluster_indices(
+  tipo_taxa = "d1",
+  anos = "20_21",
+  kmeans_n = 3:4,
+  pam_n = 3:4,
+  ward_n = c(2, 4)
 )
 
-d1_pam_index_20_21 <- data.frame(
-  metodo = unlist(lapply(3:4, function(i) paste0("pam", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados1_20_21, get(paste0("d1_pam", i, "_20_21"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados1_20_21,
-        get(paste0("d1_pam", i, "_20_21"))$cluster,
-        d = dados1_20_21_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados1_20_21_dist,
-        get(paste0("d1_pam", i, "_20_21"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados1_20_21_dist, get(paste0("d1_pam", i, "_20_21"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados1_20_21, get(paste0("d1_pam", i, "_20_21"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados1_20_21,
-        get(paste0("d1_pam", i, "_20_21"))$cluster,
-        d = dados1_20_21_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d1_ward_index_20_21 <- data.frame(
-  metodo = unlist(lapply(c(2, 4), function(i) paste0("ward", i))),
-  db_index_cent = unlist(lapply(
-    c(2, 4),
-    function(i)
-      index.DB(dados1_20_21, get(paste0("d1_ward", i, "_20_21", "_class")))$DB
-  )),
-  db_index_med = unlist(lapply(
-    c(2, 4),
-    function(i)
-      index.DB(
-        dados1_20_21,
-        get(paste0("d1_ward", i, "_20_21", "_class")),
-        d = dados1_20_21_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    c(2, 4),
-    function(i)
-      dunn(
-        distance = dados1_20_21_dist,
-        get(paste0("d1_ward", i, "_20_21", "_class"))
-      )
-  )),
-  silh_index = unlist(lapply(
-    c(2, 4),
-    function(i)
-      index.S(dados1_20_21_dist, get(paste0("d1_ward", i, "_20_21", "_class")))
-  )),
-  ch_index_cent = unlist(lapply(
-    c(2, 4),
-    function(i)
-      index.G1(dados1_20_21, get(paste0("d1_ward", i, "_20_21", "_class")))
-  )),
-  ch_index_med = unlist(lapply(
-    c(2, 4),
-    function(i)
-      index.G1(
-        dados1_20_21,
-        get(paste0("d1_ward", i, "_20_21", "_class")),
-        d = dados1_20_21_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-# Printing the table
-d1_avaliacao_20_21 <- rbind(
-  d1_pam_index_20_21,
-  d1_kmeans_index_20_21,
-  d1_ward_index_20_21
-)
-d1_avaliacao_20_21 |> kable() |>
+d1_avaliacao_20_21 |> 
+  kable(
+    caption = "Evaluation indices of the candidate clusterings for the 2020-2021 
+    period and 10 to 14 age group.",
+    align = "cccccc"
+  ) |>
   kable_styling(latex_options = c("scale_down", "HOLD_position")) |>
-  row_spec(0, bold = TRUE)
+  row_spec(0, bold = TRUE) |>
+  column_spec(2:7, width = "2cm")
 ```
 
-```{r echo=FALSE}
+```{r indices-20-21-10-14, echo=FALSE}
 readRDS("r_objects/d1_avaliacao_20_21.RDS") |>
-  kable() |>
+  kable(
+    caption = "Evaluation indices of the candidate clusterings for the 2020-2021 
+    period and 10 to 14 age group.",
+    align = "cccccc"
+  ) |>
   kable_styling(latex_options = c("scale_down", "HOLD_position")) |>
-  row_spec(0, bold = TRUE)
+  row_spec(0, bold = TRUE) |>
+  column_spec(2:7, width = "2cm")
 
 ```
 
@@ -2133,7 +1518,7 @@ readRDS("r_objects/d1_avaliacao_20_21.RDS") |>
 * ch_index_cent: the higher the better (kmeans4, followed by ward4 and kmeans3);
 * ch_index_med: the higher the better (kmeans4, followed by ward4 and kmeans3).
 
-**Choice:** again, despite the better perfomance of k-means with K = 4 and Ward's method with K = 4, one of their clusters contained only a few municipalities (90 and 70, respectively).
+**Choice:** again, despite the better perfomance of K-Means with K = 4 and Ward's method with K = 4, one of their clusters contained only a few municipalities (90 and 70, respectively).
 
 ```{r}
 d1_kmeans4_20_21$size
@@ -2174,22 +1559,22 @@ df_indicadores_20_21$cluster_10_a_14 <- factor(case_when(
 
 \phantom{}
 
+The K-Means knee plot for the 2018-2019 period and 15 to 19 age group can be seen in **Figure \@ref(fig:kmeans-18-19-15-19)**.
+
 ```{r eval=FALSE}
-# Ploting the k-means knee-plot for the 2018-2019 period
+# Ploting the K-Means knee-plot for the 2018-2019 period
 set.seed(1504)
 fviz_nbclust(dados2_18_19, kmeans, method = "wss")
 ```
 
-```{r echo=FALSE, fig.cap="K-Means knee-plot for the 15 to 19 age group and 2018-2019 period"}
+```{r kmeans-18-19-15-19, echo=FALSE, fig.cap="K-Means knee-plot for the 15 to 19 age group and 2018-2019 period"}
 readRDS("r_objects/kneeplot_kmeans_15_19_18_19.RDS")
 ```
-
-
 
 - **Candidates:** K = 3 and K = 4 (an argument that the total within-group variance does not decrease significantly after these values can be made for both numbers of groups).
 
 ```{r}
-# Adjusting the k-means method with the chosen numbers of clusters
+# Adjusting the K-Means method with the chosen numbers of clusters
 set.seed(1504)
 d2_kmeans3_18_19 <- kmeans(dados2_18_19, 3)
 
@@ -2202,22 +1587,22 @@ d2_kmeans4_18_19 <- kmeans(dados2_18_19, 4)
 
 \phantom{}
 
+The K-Means knee plot for the 2020-2021 period and 15 to 19 age group can be seen in **Figure \@ref(fig:kmeans-20-21-15-19)**.
+
 ```{r eval=FALSE}
-# Ploting the k-means knee-plot for the 2020-2021 period
+# Ploting the K-Means knee-plot for the 2020-2021 period
 set.seed(1504)
 fviz_nbclust(dados2_20_21, kmeans, method = "wss")
 ```
 
-```{r echo=FALSE, fig.cap="K-Means knee-plot for the 15 to 19 age group and 2020-2021 period"}
+```{r kmeans-20-21-15-19, echo=FALSE, fig.cap="K-Means knee-plot for the 15 to 19 age group and 2020-2021 period"}
 readRDS("r_objects/kneeplot_kmeans_15_19_20_21.RDS")
 ```
-
-
 
 - **Candidates:** K = 3 and K = 4 (an argument that the total within-group variance does not decrease significantly after these values can be made for both numbers of groups).
 
 ```{r}
-# Adjusting the k-means method with the chosen numbers of clusters
+# Adjusting the K-Means method with the chosen numbers of clusters
 set.seed(1504)
 d2_kmeans3_20_21 <- kmeans(dados2_20_21, 3)
 
@@ -2232,24 +1617,24 @@ d2_kmeans4_20_21 <- kmeans(dados2_20_21, 4)
 
 \phantom{}
 
+The K-Medians knee plot for the 2018-2019 period and 15 to 19 age group can be seen in **Figure \@ref(fig:kmedians-18-19-15-19)**.
+
 ```{r eval=FALSE}
 # Ploting the k-medoids knee-plot for the 2018-2019 period
 set.seed(1504)
 fviz_nbclust(dados2_18_19, cluster::pam, method = "wss")
 ```
 
-```{r echo=FALSE, fig.cap="K-Medians knee-plot for the 15 to 19 age group and 2018-2019 period"}
+```{r kmedians-18-19-15-19, echo=FALSE, fig.cap="K-Medians knee-plot for the 15 to 19 age group and 2018-2019 period"}
 readRDS("r_objects/kneeplot_kmedians_15_19_18_19.RDS")
 ```
-
-
 
 - **Candidates:** K = 3 (an argument can be made that only after this value the total within-group variance does not decrease significantly).
 
 ```{r}
 # Adjusting the k-medians method with the chosen numbers of clusters
 set.seed(1504)
-d2_pam3_18_19 <- cluster::pam(dados2_18_19, k = 3)
+d2_kmedoids3_18_19 <- cluster::pam(dados2_18_19, k = 3)
 ```
 
 
@@ -2257,27 +1642,27 @@ d2_pam3_18_19 <- cluster::pam(dados2_18_19, k = 3)
 
 \phantom{}
 
+The K-Medians knee plot for the 2020-2021 period and 15 to 19 age group can be seen in **Figure \@ref(fig:kmedians-20-21-15-19)**.
+
 ```{r eval=FALSE}
 # Ploting the k-medoids knee-plot for the 2020-2021 period
 set.seed(1504)
 fviz_nbclust(dados2_20_21, cluster::pam, method = "wss")
 ```
 
-```{r echo=FALSE, fig.cap="K-Medians knee-plot for the 15 to 19 age group and 2020-2021 period"}
+```{r kmedians-20-21-15-19, echo=FALSE, fig.cap="K-Medians knee-plot for the 15 to 19 age group and 2020-2021 period"}
 readRDS("r_objects/kneeplot_kmedians_15_19_20_21.RDS")
 ```
-
-
 
 - **Candidates:** K = 3 and K = 4 (an argument that the total within-group variance does not decrease significantly after these values can be made for both numbers of groups).
 
 ```{r}
 # Adjusting the k-medians method with the chosen numbers of clusters
 set.seed(1504)
-d2_pam3_20_21 <- cluster::pam(dados2_20_21, k = 3)
+d2_kmedoids3_20_21 <- cluster::pam(dados2_20_21, k = 3)
 
 set.seed(1504)
-d2_pam4_20_21 <- cluster::pam(dados2_20_21, k = 4)
+d2_kmedoids4_20_21 <- cluster::pam(dados2_20_21, k = 4)
 ```
 
 ### Ward's method
@@ -2286,12 +1671,13 @@ d2_pam4_20_21 <- cluster::pam(dados2_20_21, k = 4)
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for Ward's method for the 15 to 19 age group and 2018-2019 period"}
+The dendrogram for Ward's method for the 2018-2019 period and 15 to 19 age group can be seen in **Figure \@ref(fig:ward-18-19-15-19)**.
+
+```{r ward-18-19-15-19, fig.cap="Dendrogram for Ward's method for the 15 to 19 age group and 2018-2019 period"}
 # Ploting the drodrogram for Ward's method for the 2018-2019 period
 set.seed(1504)
 d2_ward_18_19 <- hclust(dados2_18_19_dist, method = "ward.D2")
-plot(as.dendrogram(d2_ward_18_19), ylab = "Altura")
-rect.hclust(d2_ward_18_19, k = 3, border = 2:5)
+plot(as.dendrogram(d2_ward_18_19))
 ```
 
 
@@ -2308,15 +1694,14 @@ d2_ward3_18_19_class <- cutree(d2_ward_18_19, k = 3)
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for Ward's method for the 15 to 19 age group and 2020-2021 period"}
+The dendrogram for Ward's method for the 2020-2021 period and 15 to 19 age group can be seen in **Figure \@ref(fig:ward-20-21-15-19)**.
+
+```{r ward-20-21-15-19, fig.cap="Dendrogram for Ward's method for the 15 to 19 age group and 2020-2021 period"}
 # Ploting the drodrogram for Ward's method for the 2020-2021 period
 set.seed(1504)
 d2_ward_20_21 <- hclust(dados2_20_21_dist, method = "ward.D2")
-plot(as.dendrogram(d2_ward_20_21), ylab = "Altura")
-rect.hclust(d2_ward_20_21, k = 3, border = 2:5)
+plot(as.dendrogram(d2_ward_20_21))
 ```
-
-
 
 - **Candidates:** K = 3.
 
@@ -2332,7 +1717,9 @@ d2_ward3_20_21_class <- cutree(d2_ward_20_21, k = 3)
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for the single linkage method for the 15 to 19 age group and 2018-2019 period"}
+The dendrogram for the single linkage method for the 2018-2019 period and 15 to 19 age group can be seen in **Figure \@ref(fig:single-18-19-15-19)**.
+
+```{r single-18-19-15-19, fig.cap="Dendrogram for the single linkage method for the 15 to 19 age group and 2018-2019 period"}
 # Ploting the drodrogram for the single linkage method for the 2018-2019 period
 set.seed(1504)
 d2_single_18_19 <- hclust(dados2_18_19_dist, method = "single")
@@ -2348,7 +1735,9 @@ plot(as.dendrogram(d2_single_18_19))
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for the single linkage method for the 15 to 19 age group and 2020-2021 period"}
+The dendrogram for the single linkage method for the 2020-2021 period and 15 to 19 age group can be seen in **Figure \@ref(fig:single-20-21-15-19)**.
+
+```{r single-20-21-15-19, fig.cap="Dendrogram for the single linkage method for the 15 to 19 age group and 2020-2021 period"}
 # Ploting the drodrogram for the single linkage method for the 2020-2021 period
 set.seed(1504)
 d2_single_20_21 <- hclust(dados2_20_21_dist, method = "single")
@@ -2366,13 +1755,14 @@ plot(as.dendrogram(d2_single_20_21))
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for the complete linkage method for the 15 to 19 age group and 2018-2019 period"}
+The dendrogram for the complete linkage method for the 2018-2019 period and 15 to 19 age group can be seen in **Figure \@ref(fig:complete-18-19-15-19)**.
+
+```{r complete-18-19-15-19, fig.cap="Dendrogram for the complete linkage method for the 15 to 19 age group and 2018-2019 period"}
 # Ploting the drodrogram for the complete linkage method for the 2018-2019 period
 set.seed(1504)
 d2_complete_18_19 <- hclust(dados2_18_19_dist, method = "complete")
 plot(as.dendrogram(d2_complete_18_19))
 ```
-
 
 
 - **Candidates:** No candidates. A bad fit overall.
@@ -2381,14 +1771,14 @@ plot(as.dendrogram(d2_complete_18_19))
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for the complete linkage method for the 15 to 19 age group and 2020-2021 period"}
+The dendrogram for the complete linkage method for the 2020-2021 period and 15 to 19 age group can be seen in **Figure \@ref(fig:complete-20-21-15-19)**.
+
+```{r complete-20-21-15-19, fig.cap="Dendrogram for the complete linkage method for the 15 to 19 age group and 2020-2021 period"}
 # Ploting the drodrogram for the complete linkage method for the 2020-2021 period
 set.seed(1504)
 d2_complete_20_21 <- hclust(dados2_20_21_dist, method = "complete")
 plot(as.dendrogram(d2_complete_20_21))
 ```
-
-
 
 - **Candidates:** No candidates. A bad fit overall.
 
@@ -2398,14 +1788,14 @@ plot(as.dendrogram(d2_complete_20_21))
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for the average linkage method for the 15 to 19 age group and 2018-2019 period"}
+The dendrogram for the average linkage method for the 2018-2019 period and 15 to 19 age group can be seen in **Figure \@ref(fig:average-18-19-15-19)**.
+
+```{r average-18-19-15-19, fig.cap="Dendrogram for the average linkage method for the 15 to 19 age group and 2018-2019 period"}
 # Ploting the drodrogram for the average linkage method for the 2018-2019 period
 set.seed(1504)
 d2_average_18_19 <- hclust(dados2_18_19_dist, method = "average")
 plot(as.dendrogram(d2_average_18_19))
 ```
-
-
 
 - **Candidates:** No candidates. A bad fit overall.
 
@@ -2413,14 +1803,14 @@ plot(as.dendrogram(d2_average_18_19))
 
 \phantom{}
 
-```{r fig.cap="Dendrogram for the average linkage method for the 15 to 19 age group and 2020-2021 period"}
+The dendrogram for the average linkage method for the 2020-2021 period and 15 to 19 age group can be seen in **Figure \@ref(fig:average-20-21-15-19)**.
+
+```{r average-20-21-15-19, fig.cap="Dendrogram for the average linkage method for the 15 to 19 age group and 2020-2021 period"}
 # Ploting the drodrogram for the average linkage method for the 2020-2021 period
 set.seed(1504)
 d2_average_20_21 <- hclust(dados2_20_21_dist, method = "average")
 plot(as.dendrogram(d2_average_20_21))
 ```
-
-
 
 - **Candidates:** No candidates. A bad fit overall.
 
@@ -2430,168 +1820,40 @@ plot(as.dendrogram(d2_average_20_21))
 
 \phantom{}
 
+The evaluation indices of the candidate clusterings for the 2018-2019 period and 15 to 19 age group can be seen in **Table \@ref(tab:indices-18-19-15-19)**.
+
 ```{r eval=FALSE}
 # Calculating the considered indices
-d2_kmeans_index_18_19 <- data.frame(
-  metodo = unlist(lapply(3:4, function(i) paste0("kmeans", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados2_18_19, get(paste0("d2_kmeans", i, "_18_19"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados2_18_19,
-        get(paste0("d2_kmeans", i, "_18_19"))$cluster,
-        d = dados2_18_19_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados2_18_19_dist,
-        get(paste0("d2_kmeans", i, "_18_19"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados2_18_19_dist, get(paste0("d2_kmeans", i, "_18_19"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados2_18_19, get(paste0("d2_kmeans", i, "_18_19"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados2_18_19,
-        get(paste0("d2_kmeans", i, "_18_19"))$cluster,
-        d = dados2_18_19_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d2_pam_index_18_19 <- data.frame(
-  metodo = unlist(lapply(3, function(i) paste0("pam", i))),
-  db_index_cent = unlist(lapply(
-    3,
-    function(i)
-      index.DB(dados2_18_19, get(paste0("d2_pam", i, "_18_19"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3,
-    function(i)
-      index.DB(
-        dados2_18_19,
-        get(paste0("d2_pam", i, "_18_19"))$cluster,
-        d = dados2_18_19_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3,
-    function(i)
-      dunn(
-        distance = dados2_18_19_dist,
-        get(paste0("d2_pam", i, "_18_19"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3,
-    function(i)
-      index.S(dados2_18_19_dist, get(paste0("d2_pam", i, "_18_19"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3,
-    function(i)
-      index.G1(dados2_18_19, get(paste0("d2_pam", i, "_18_19"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3,
-    function(i)
-      index.G1(
-        dados2_18_19,
-        get(paste0("d2_pam", i, "_18_19"))$cluster,
-        d = dados2_18_19_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d2_ward_index_18_19 <- data.frame(
-  metodo = unlist(lapply(3, function(i) paste0("ward", i))),
-  db_index_cent = unlist(lapply(
-    3,
-    function(i)
-      index.DB(dados2_18_19, get(paste0("d2_ward", i, "_18_19", "_class")))$DB
-  )),
-  db_index_med = unlist(lapply(
-    3,
-    function(i)
-      index.DB(
-        dados2_18_19,
-        get(paste0("d2_ward", i, "_18_19", "_class")),
-        d = dados2_18_19_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3,
-    function(i)
-      dunn(
-        distance = dados2_18_19_dist,
-        get(paste0("d2_ward", i, "_18_19", "_class"))
-      )
-  )),
-  silh_index = unlist(lapply(
-    3,
-    function(i)
-      index.S(dados2_18_19_dist, get(paste0("d2_ward", i, "_18_19", "_class")))
-  )),
-  ch_index_cent = unlist(lapply(
-    3,
-    function(i)
-      index.G1(dados2_18_19, get(paste0("d2_ward", i, "_18_19", "_class")))
-  )),
-  ch_index_med = unlist(lapply(
-    3,
-    function(i)
-      index.G1(
-        dados2_18_19,
-        get(paste0("d2_ward", i, "_18_19", "_class")),
-        d = dados2_18_19_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-# Printing the table
-d2_avaliacao_18_19 <- rbind(
-  d2_pam_index_18_19,
-  d2_kmeans_index_18_19,
-  d2_ward_index_18_19
+d2_avaliacao_18_19 <- avaliar_cluster_indices(
+  tipo_taxa = "d2",
+  anos = "18_19",
+  kmeans_n = 3:4,
+  pam_n = 3,
+  ward_n = 3
 )
 
 d2_avaliacao_18_19 |>
-  kable() |>
+  kable(
+    caption = "Evaluation indices of the candidate clusterings for the 2018-2019 
+    period and 15 to 19 age group.",
+    align = "cccccc"
+  ) |>
   kable_styling(latex_options = c("scale_down", "HOLD_position")) |>
-  row_spec(0, bold = TRUE)
+  row_spec(0, bold = TRUE) |>
+  column_spec(2:7, width = "2cm")
 
 ```
 
-```{r echo=FALSE}
+```{r indices-18-19-15-19, echo=FALSE}
 readRDS("r_objects/d2_avaliacao_18_19.RDS") |>
-  kable() |>
+  kable(
+    caption = "Evaluation indices of the candidate clusterings for the 2018-2019 
+    period and 15 to 19 age group.",
+    align = "cccccc"
+  ) |>
   kable_styling(latex_options = c("scale_down", "HOLD_position")) |>
-  row_spec(0, bold = TRUE)
+  row_spec(0, bold = TRUE) |>
+  column_spec(2:7, width = "2cm")
 
 ```
 
@@ -2633,167 +1895,39 @@ df_indicadores_18_19$cluster_15_a_19 <- factor(case_when(
 
 \phantom{}
 
+The evaluation indices of the candidate clusterings for the 2020-2021 period and 15 to 19 age group can be seen in **Table \@ref(tab:indices-20-21-15-19)**.
+
 ```{r eval=FALSE}
 # Calculating the considered indices
-d2_kmeans_index_20_21 <- data.frame(
-  metodo = unlist(lapply(3:4, function(i) paste0("kmeans", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados2_20_21, get(paste0("d2_kmeans", i, "_20_21"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados2_20_21,
-        get(paste0("d2_kmeans", i, "_20_21"))$cluster,
-        d = dados2_20_21_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados2_20_21_dist,
-        get(paste0("d2_kmeans", i, "_20_21"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados2_20_21_dist, get(paste0("d2_kmeans", i, "_20_21"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados2_20_21, get(paste0("d2_kmeans", i, "_20_21"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados2_20_21,
-        get(paste0("d2_kmeans", i, "_20_21"))$cluster,
-        d = dados2_20_21_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d2_pam_index_20_21 <- data.frame(
-  metodo = unlist(lapply(3:4, function(i) paste0("pam", i))),
-  db_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(dados2_20_21, get(paste0("d2_pam", i, "_20_21"))$cluster)$DB
-  )),
-  db_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.DB(
-        dados2_20_21,
-        get(paste0("d2_pam", i, "_20_21"))$cluster,
-        d = dados2_20_21_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3:4,
-    function(i)
-      dunn(
-        distance = dados2_20_21_dist,
-        get(paste0("d2_pam", i, "_20_21"))$cluster
-      )
-  )),
-  silh_index = unlist(lapply(
-    3:4,
-    function(i)
-      index.S(dados2_20_21_dist, get(paste0("d2_pam", i, "_20_21"))$cluster)
-  )),
-  ch_index_cent = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(dados2_20_21, get(paste0("d2_pam", i, "_20_21"))$cluster)
-  )),
-  ch_index_med = unlist(lapply(
-    3:4,
-    function(i)
-      index.G1(
-        dados2_20_21,
-        get(paste0("d2_pam", i, "_20_21"))$cluster,
-        d = dados2_20_21_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-d2_ward_index_20_21 <- data.frame(
-  metodo = unlist(lapply(3, function(i) paste0("ward", i))),
-  db_index_cent = unlist(lapply(
-    3,
-    function(i)
-      index.DB(dados2_20_21, get(paste0("d2_ward", i, "_20_21", "_class")))$DB
-  )),
-  db_index_med = unlist(lapply(
-    3,
-    function(i)
-      index.DB(
-        dados2_20_21,
-        get(paste0("d2_ward", i, "_20_21", "_class")),
-        d = dados2_20_21_dist,
-        centrotypes = "medoids"
-      )$DB
-  )),
-  dunn_index = unlist(lapply(
-    3,
-    function(i)
-      dunn(
-        distance = dados2_20_21_dist,
-        get(paste0("d2_ward", i, "_20_21", "_class"))
-      )
-  )),
-  silh_index = unlist(lapply(
-    3,
-    function(i)
-      index.S(dados2_20_21_dist, get(paste0("d2_ward", i, "_20_21", "_class")))
-  )),
-  ch_index_cent = unlist(lapply(
-    3,
-    function(i)
-      index.G1(dados2_20_21, get(paste0("d2_ward", i, "_20_21", "_class")))
-  )),
-  ch_index_med = unlist(lapply(
-    3,
-    function(i)
-      index.G1(
-        dados2_20_21,
-        get(paste0("d2_ward", i, "_20_21", "_class")),
-        d = dados2_20_21_dist,
-        centrotypes = "medoids"
-      )
-  ))
-)
-
-# Printing the table
-d2_avaliacao_20_21 <- rbind(
-  d2_pam_index_20_21,
-  d2_kmeans_index_20_21,
-  d2_ward_index_20_21
+d2_avaliacao_20_21 <- avaliar_cluster_indices(
+  tipo_taxa = "d2",
+  anos = "20_21",
+  kmeans_n = 3:4,
+  pam_n = 3:4,
+  ward_n = 3
 )
 
 d2_avaliacao_20_21 |>
-  kable() |>
+  kable(
+    caption = "Evaluation indices of the candidate clusterings for the 2020-2021 
+    period and 15 to 19 age group.",
+    align = "cccccc"
+  ) |>
   kable_styling(latex_options = c("scale_down", "HOLD_position")) |>
-  row_spec(0, bold = TRUE)
+  row_spec(0, bold = TRUE) |>
+  column_spec(2:7, width = "2cm")
 ```
 
-```{r echo=FALSE}
+```{r indices-20-21-15-19, echo=FALSE}
 readRDS("r_objects/d2_avaliacao_20_21.RDS") |>
-  kable() |>
+  kable(
+    caption = "Evaluation indices of the candidate clusterings for the 2020-2021 
+    period and 15 to 19 age group.",
+    align = "cccccc"
+  ) |>
   kable_styling(latex_options = c("scale_down", "HOLD_position")) |>
-  row_spec(0, bold = TRUE)
+  row_spec(0, bold = TRUE) |>
+  column_spec(2:7, width = "2cm")
 
 ```
 
@@ -2806,7 +1940,7 @@ readRDS("r_objects/d2_avaliacao_20_21.RDS") |>
 * ch_index_cent: the higher the better (kmeans4, followed by kmeans3);
 * ch_index_med: the higher the better (kmeans4, followed by kmeans3).
 
-**Choice:** even though, this time around, the k-means with K = 4 didn't have problems with too little municipalities in a cluster, we chose the **K-Means with K = 3 ** to make it "comparable" with the other chosen clustering methods.
+**Choice:** even though, this time around, the K-Means with K = 4 didn't have problems with too little municipalities in a cluster, we chose the **K-Means with K = 3 ** to make it "comparable" with the other chosen clustering methods.
 
 ```{r}
 d2_kmeans4_20_21$size
@@ -2858,7 +1992,7 @@ df_dados_mapa_completo <- full_join(df_dados_mapa_18_19, df_dados_mapa_20_21) |>
 
 ```
 
-For the 10 to 14 years age group, group 3 (municipalities with the highest fertility rates) is predominantly formed by municipalities in the North region of Brazil, while group 1 (municipalities with the lowest fertility rates) is mainly composed of municipalities in the Southeast and South regions, with a similar pattern for the two periods of analysis.
+For the 10 to 14 years age group, group 3 (municipalities with the highest fertility rates) is predominantly formed by municipalities in the North region of Brazil, while group 1 (municipalities with the lowest fertility rates) is mainly composed of municipalities in the Southeast and South regions, with a similar pattern for the two periods of analysis (**Figure \@ref(fig:mapa-10-14)**).
 
 ```{r eval=FALSE}
 # Plotting the map for the 10 to 14 age group
@@ -2881,11 +2015,11 @@ ggplot() +
 
 ```
 
-```{r echo=FALSE, fig.cap="Distribution of groups of municipalities formed by municipalities with similar fertility rate of women aged 10 to 14 years in the pre-pandemic period (on the left) and in the pandemic period (on the right).", out.width='100%'}
+```{r mapa-10-14, echo=FALSE, fig.cap="Distribution of groups of municipalities formed by municipalities with similar fertility rate of women aged 10 to 14 years in the pre-pandemic period (on the left) and in the pandemic period (on the right).", fig.width=12, out.width='100%'}
 knitr::include_graphics("r_objects/mapa_clusters_10_a_14.png")
 ```
 
-For the 15 to 19 years old age group, group 3 (municipalities with the highest fertility rates) is predominantly formed by municipalities located in the North of Brazil and in the Southeast of the state of Mato Grosso. Group 1 (municipalities with the lowest fertility rates) is predominantly composed of municipalities in the Southeast and South regions (Figure 3).
+For the 15 to 19 years old age group, group 3 (municipalities with the highest fertility rates) is predominantly formed by municipalities located in the North of Brazil and in the Southeast of the state of Mato Grosso. Group 1 (municipalities with the lowest fertility rates) is predominantly composed of municipalities in the Southeast and South regions (**Figure \@ref(fig:mapa-15-19)**).
 
 ```{r eval=FALSE}
 # Plotting the map for the 15 to 19 age group
@@ -2908,19 +2042,19 @@ ggplot() +
 
 ```
 
-```{r echo=FALSE, fig.cap="Distribution of groups of municipalities formed by municipalities with similar fertility rate of women aged 15 to 19 years in the pre-pandemic period (on the left) and in the pandemic period (on the right).", fig.width=12, out.width='100%'}
+```{r mapa-15-19, echo=FALSE, fig.cap="Distribution of groups of municipalities formed by municipalities with similar fertility rate of women aged 15 to 19 years in the pre-pandemic period (on the left) and in the pandemic period (on the right).", fig.width=12, out.width='100%'}
 knitr::include_graphics("r_objects/mapa_clusters_15_a_19.png")
 ```
 
-
 ## Summary tables
 
-\phantom{}
+The code below contains a function that creates tables with the summary measures of each group for each variable of interest.
 
 ```{r}
 # Creating a function that creates a table with the summary measures
 cria_tabelas <- function(
   variaveis,
+  nomes_legiveis,
   df,
   var_grupos,
   label_tabela,
@@ -3014,21 +2148,21 @@ cria_tabelas <- function(
           tabela,
           align = "cccccccc",
           col.names = c(
-            "Grupo (cluster)",
+            "Group (cluster)",
             "n",
-            "Mín.",
-            "1º Quartil",
-            "Média",
-            "Mediana",
-            "D.P.",
-            "3º Quartil",
-            "Máx."
+            "Min.",
+            "1st Quartile",
+            "Mean",
+            "Median",
+            "S.D.",
+            "3rd Quartile",
+            "Max."
           ),
           caption = glue::glue(
             "Summary measures of the variables of interest for the clusters of
             municipalities grouped by the fertility rate of women aged
             {faixa_etaria} (per thousand) in the period of {periodo}. 
-            \\\\ \\\\ \\textbf{{{variavel}}}"
+            \\\\ \\\\ \\textbf{{{nomes_legiveis[[variavel]]}}}"
           ),
           label = paste0("tabela", label_tabela)
         ) |>
@@ -3036,21 +2170,21 @@ cria_tabelas <- function(
           row_spec(1, bold = TRUE)
       )
     } else {
-      cat(knitr::asis_output(paste0("**", variavel, "**\n\n")))
+      cat(knitr::asis_output(paste0("**", nomes_legiveis[[variavel]], "**\n\n")))
       print(
         kable(
           tabela,
           align = "cccccccc",
           col.names = c(
-            "Grupo (cluster)",
+            "Group (cluster)",
             "n",
-            "Mín.",
-            "1º Quartil",
-            "Média",
-            "Mediana",
-            "D.P.",
-            "3º Quartil",
-            "Máx."
+            "Min.",
+            "1st Quartile",
+            "Mean",
+            "Median",
+            "S.D.",
+            "3rd Quartile",
+            "Max."
           )
         ) |>
           kable_styling(latex_options = c("scale_down", "HOLD_position")) |>
@@ -3060,17 +2194,33 @@ cria_tabelas <- function(
   }
 }
 nomes_variaveis1 <- c(
+  "tx_fecundidade_10_a_14",
   "idhm",
   "cobertura_ab",
-  "porc_exclusivas_sus",
-  "tx_fecundidade_10_a_14"
+  "porc_exclusivas_sus"
 )
+nomes_legiveis1 <- c(
+  "Fertility rate (10 to 14 age group)",
+  "HDI-M",
+  "Primary Care coverage",
+  "Percentage of women who are exclusive users of the SUS"
+)
+names(nomes_legiveis1) <- nomes_variaveis1
+
+
 nomes_variaveis2 <- c(
+  "tx_fecundidade_15_a_19",
   "idhm",
   "cobertura_ab",
-  "porc_exclusivas_sus",
-  "tx_fecundidade_15_a_19"
+  "porc_exclusivas_sus"
 )
+nomes_legiveis2 <- c(
+  "Fertility rate (15 to 19 age group)",
+  "HDI-M",
+  "Primary Care coverage",
+  "Percentage of women who are exclusive users of the SUS"
+)
+names(nomes_legiveis2) <- nomes_variaveis2
 ```
 
 ### For the 10 to 14 age group
@@ -3078,6 +2228,8 @@ nomes_variaveis2 <- c(
 #### 2018-2019
 
 \phantom{}
+
+Summary measures of each group for the 2018-2019 period and 10 to 14 age group can be seen in **Table \@ref(tab:tabela1)**.
 
 ```{r results='asis'}
 # Creating the summary tables for the 10 to 14 age group for the 2018-2019 period
@@ -3087,14 +2239,17 @@ cria_tabelas(
   label_tabela = "1",
   faixa_etaria = "aged 10 to 14",
   variaveis = nomes_variaveis1,
+  nomes_legiveis = nomes_legiveis1,
   periodo = "2018 to 2019"
 )
-
 ```
+
 
 #### 2020-2021
 
 \phantom{}
+
+Summary measures of each group for the 2020-2021 period and 10 to 14 age group can be seen in **Table \@ref(tab:tabela2)**.
 
 ```{r results='asis'}
 # Creating the summary tables for the 10 to 14 age group for the 2020-2021 period
@@ -3104,6 +2259,7 @@ cria_tabelas(
   label_tabela = "2",
   faixa_etaria = "aged 10 to 14",
   variaveis = nomes_variaveis1,
+  nomes_legiveis = nomes_legiveis1,
   periodo = "2020 to 2021"
 )
 
@@ -3115,6 +2271,8 @@ cria_tabelas(
 
 \phantom{}
 
+Summary measures of each group for the 2018-2019 period and 15 to 19 age group can be seen in **Table \@ref(tab:tabela3)**.
+
 ```{r results='asis'}
 # Creating the summary tables for the 15 to 19 age group for the 2018-2019 period
 cria_tabelas(
@@ -3123,6 +2281,7 @@ cria_tabelas(
   label_tabela = "3",
   faixa_etaria = "aged 15 to 19",
   variaveis = nomes_variaveis2,
+  nomes_legiveis = nomes_legiveis2,
   periodo = "2018 to 2019"
 )
 
@@ -3132,6 +2291,8 @@ cria_tabelas(
 
 \phantom{}
 
+Summary measures of each group for the 2020-2021 period and 15 to 19 age group can be seen in **Table \@ref(tab:tabela4)**.
+
 ```{r results='asis'}
 # Creating the summary tables for the 15 to 19 age group for the 2020-2021 period
 cria_tabelas(
@@ -3140,6 +2301,7 @@ cria_tabelas(
   label_tabela = "4",
   faixa_etaria = "aged 15 to 19",
   variaveis = nomes_variaveis2,
+  nomes_legiveis = nomes_legiveis2,
   periodo = "2020 to 2021"
 )
 
@@ -3147,12 +2309,13 @@ cria_tabelas(
 
 ## Multiple comparisions tables
 
-\phantom{}
+The code below contains a function that creates tables with the pairwise comparisions for the groups obtained for each variable considered.
 
 ```{r}
 # Creating a function that creates a table with the multiple comparisions
 cria_tabelas_testes <- function(
   variaveis,
+  nomes_legiveis,
   df,
   var_grupos,
   label_tabela,
@@ -3167,63 +2330,63 @@ cria_tabelas_testes <- function(
       p.adjust.method = "bonferroni"
     )
 
-    # Calcula a medida de efeito d de Cohen
+    # Calculating Cohen's D
     efeito_d <- cohens_d(data = df, formula = formula)
 
-monta_linhas <- function(num_grupo) {
-  conteudo <- paste(
-    -1 *
-      round(
-        resultados_dunn$statistic[which(
-          resultados_dunn$group1 == unique(resultados_dunn$group1)[num_grupo]
-        )],
-        3
-      ),
-    "(Z) \\\\",
-    ifelse(
-      round(
-        resultados_dunn$p.adj[which(
-          resultados_dunn$group1 == unique(resultados_dunn$group1)[num_grupo]
-        )],
-        3
-      ) < 0.05,
-      ifelse(
-        round(
-          resultados_dunn$p.adj[which(
-            resultados_dunn$group1 == unique(resultados_dunn$group1)[num_grupo]
-          )],
-          3
-        ) == 0,
-        "< 0.001*",
-        paste0(
+    monta_linhas <- function(num_grupo) {
+      conteudo <- paste(
+        -1 *
+          round(
+            resultados_dunn$statistic[which(
+              resultados_dunn$group1 == unique(resultados_dunn$group1)[num_grupo]
+            )],
+            3
+          ),
+        "(Z) \\\\",
+        ifelse(
           round(
             resultados_dunn$p.adj[which(
               resultados_dunn$group1 == unique(resultados_dunn$group1)[num_grupo]
             )],
             3
+          ) < 0.05,
+          ifelse(
+            round(
+              resultados_dunn$p.adj[which(
+                resultados_dunn$group1 == unique(resultados_dunn$group1)[num_grupo]
+              )],
+              3
+            ) == 0,
+            "< 0.001*",
+            paste0(
+              round(
+                resultados_dunn$p.adj[which(
+                  resultados_dunn$group1 == unique(resultados_dunn$group1)[num_grupo]
+                )],
+                3
+              ),
+              "*"
+            )
           ),
-          "*"
-        )
-      ),
-      round(
-        resultados_dunn$p.adj[which(
-          resultados_dunn$group1 == unique(resultados_dunn$group1)[num_grupo]
-        )],
-        3
+          round(
+            resultados_dunn$p.adj[which(
+              resultados_dunn$group1 == unique(resultados_dunn$group1)[num_grupo]
+            )],
+            3
+          )
+        ),
+        "(p-value) \\\\",
+        round(
+          efeito_d$effsize[
+            efeito_d$group1 == unique(efeito_d$group1)[num_grupo]
+          ],
+          3
+        ),
+        "(Cohen's D)"
       )
-    ),
-    "(valor-p) \\\\",
-    round(
-      efeito_d$effsize[
-        efeito_d$group1 == unique(efeito_d$group1)[num_grupo]
-      ],
-      3
-    ),
-    "(D de Cohen)"
-  )
-
-  glue::glue("\\makecell{{{conteudo}}}")
-}
+    
+      glue::glue("\\makecell{{{conteudo}}}")
+    }
 
     df_teste <- data.frame(
       grupo1 = monta_linhas(1),
@@ -3243,7 +2406,7 @@ monta_linhas <- function(num_grupo) {
             "Results of Dunn's tests (with Bonferroni correction) for multiple 
             comparisons between pairs of groups of municipalities grouped by the 
             fertility rate of women {faixa_etaria} (per thousand) in the period 
-            {periodo}. \\\\ \\\\ \\textbf{{{variavel}}}"
+            {periodo}. \\\\ \\\\ \\textbf{{{nomes_legiveis[[variavel]]}}}"
           ),
           label = paste0("tabela-comparacoes-", label_tabela),
           escape = FALSE 
@@ -3252,7 +2415,7 @@ monta_linhas <- function(num_grupo) {
           row_spec(1, bold = TRUE)
       )
     } else {
-      cat(knitr::asis_output(paste0("**", variavel, "**\n\n")))
+      cat(knitr::asis_output(paste0("**", nomes_legiveis[[variavel]], "**\n\n")))
       print(
         kbl(
           df_teste,
@@ -3266,17 +2429,33 @@ monta_linhas <- function(num_grupo) {
   }
 }
 nomes_variaveis1 <- c(
+  "tx_fecundidade_10_a_14",
   "idhm",
   "cobertura_ab",
-  "porc_exclusivas_sus",
-  "tx_fecundidade_10_a_14"
+  "porc_exclusivas_sus"
 )
+nomes_legiveis1 <- c(
+  "Fertility rate (10 to 14 age group)",
+  "HDI-M",
+  "Primary Care coverage",
+  "Percentage of women who are exclusive users of the SUS"
+)
+names(nomes_legiveis1) <- nomes_variaveis1
+
+
 nomes_variaveis2 <- c(
+  "tx_fecundidade_15_a_19",
   "idhm",
   "cobertura_ab",
-  "porc_exclusivas_sus",
-  "tx_fecundidade_15_a_19"
+  "porc_exclusivas_sus"
 )
+nomes_legiveis2 <- c(
+  "Fertility rate (15 to 19 age group)",
+  "HDI-M",
+  "Primary Care coverage",
+  "Percentage of women who are exclusive users of the SUS"
+)
+names(nomes_legiveis2) <- nomes_variaveis2
 
 ```
 
@@ -3286,6 +2465,8 @@ nomes_variaveis2 <- c(
 
 \phantom{}
 
+Pairwise comparisions for the groups obtained for the 2018-2019 period and 10 to 14 age group can be seen in **Table \@ref(tab:tabela-comparacoes-1)**.
+
 ```{r results='asis'}
 # Creating the multiple comparisions tables for the 10 to 14 age group and 2018-2019 period
 cria_tabelas_testes(
@@ -3294,6 +2475,7 @@ cria_tabelas_testes(
   label_tabela = "1",
   faixa_etaria = "aged 10 to 14",
   variaveis = nomes_variaveis1,
+  nomes_legiveis = nomes_legiveis1,
   periodo = "2018 to 2019"
 )
 
@@ -3303,6 +2485,8 @@ cria_tabelas_testes(
 
 \phantom{}
 
+Pairwise comparisions for the groups obtained for the 2020-2021 period and 10 to 14 age group can be seen in **Table \@ref(tab:tabela-comparacoes-2)**.
+
 ```{r results='asis'}
 # Creating the multiple comparisions tables for the 10 to 14 age group and 2020-2021 period
 cria_tabelas_testes(
@@ -3311,6 +2495,7 @@ cria_tabelas_testes(
   label_tabela = "2",
   faixa_etaria = "aged 10 to 14",
   variaveis = nomes_variaveis1,
+  nomes_legiveis = nomes_legiveis1,
   periodo = "2020 to 2021"
 )
 
@@ -3318,7 +2503,11 @@ cria_tabelas_testes(
 
 #### For the 15 to 19 age group
 
+#### 2018-2019
+
 \phantom{}
+
+Pairwise comparisions for the groups obtained for the 2018-2019 period and 15 to 19 age group can be seen in **Table \@ref(tab:tabela-comparacoes-3)**.
 
 ```{r results='asis'}
 # Creating the multiple comparisions tables for the 15 to 19 age group and 2018-2019 period
@@ -3328,11 +2517,17 @@ cria_tabelas_testes(
   label_tabela = "3",
   faixa_etaria = "aged 15 to 19",
   variaveis = nomes_variaveis2,
+  nomes_legiveis = nomes_legiveis2,
   periodo = "2018 to 2019"
 )
 
 ```
 
+#### 2020-2021
+
+\phantom{}
+
+Pairwise comparisions for the groups obtained for the 2020-2021 period and 15 to 19 age group can be seen in **Table \@ref(tab:tabela-comparacoes-4)**.
 
 ```{r results='asis'}
 # Creating the multiple comparisions tables for the 15 to 19 age group and 2020-2021 period
@@ -3342,6 +2537,7 @@ cria_tabelas_testes(
   label_tabela = "4",
   faixa_etaria = "aged 15 to 19",
   variaveis = nomes_variaveis2,
+  nomes_legiveis = nomes_legiveis2,
   periodo = "2020 to 2021"
 )
 
@@ -3463,7 +2659,7 @@ Since GAMLSS models give us the freedom to model separately the location, scale 
 - the reduced model chosen by strategy 2;
 - and a third reduced model, which uses, for the $\mu$ model, only the significant terms of the full model.
 
-To decide whether the reduced models were better than the full model, we used the generalized likelihood ratio test (GLRT) - which, in a simplified way, tests the null hypothesis that the reduced model is better than the full model (against the hypothesis that the full model is better). The **rejection** of the GLR null hypothesis, then, gives us evidence to believe that the reduced model is worse than the full model (which would therefore lead us to choose the full model). If the GLRT null hypothesis was not rejected for all the reduced models, we chose the reduced model that presented the most appropriate residual analysis or the lowest AIC value. Finally, after selecting the best model for each distribution, we chose, between the two selected models, the one that presented the most appropriate residual analysis or the lowest AIC value. All analyses were conducted using functions from the `{gamlss}` package [@gamlss:2005], available in the R software [@R:2023].
+To decide whether the reduced models were better than the full model, we used the generalized likelihood ratio test (GLRT) - which, in a simplified way, tests the null hypothesis that the reduced model is better than the full model (against the hypothesis that the full model is better). The **rejection** of the GLR null hypothesis, then, gives us evidence to believe that the reduced model is worse than the full model (which would therefore lead us to choose the full model). If the GLRT null hypothesis was not rejected for all the reduced models, we chose the reduced model that presented the most appropriate residual analysis or the lowest AIC value. Finally, after selecting the best model for each distribution, we chose, between the two selected models, the one that presented the most appropriate residual analysis or the lowest AIC value. All analyses were conducted using functions from the `{gamlss}` package [@gamlss:2005].
 
 It is important to note that we chose to incorporate a random effect for the reference year to address the issue that observations from the same year are possibly correlated with each other, which violates the basic assumption that the observations are all independent.
 
@@ -3664,7 +2860,7 @@ LR.test(fit4_st4, fit5_st4)
 
 Typical graphs related to the analysis of residuals of this model can be seen in **Figure \@ref(fig:residuals-t)**. It is important to note here that the residuals considered by the GAMLSS models are the so-called *normalized (randomized) quantile residuals*, which, **when the distribution assumed for the response variable is adequate**, always follow a standard normal distribution. As we can see by observing the graphs presented in this figure, the assumptions of the model seem to be respected, since:
 
-1. in the first two graphs, of residuals against adjusted values and of residuals against the indexes of the observations, the residuals appear to be distributed randomly around the horizontal line at $y = 0$;
+1. in the first two graphs, of residuals against adjusted values and of residuals against the indices of the observations, the residuals appear to be distributed randomly around the horizontal line at $y = 0$;
 
 2. in the third graph, of the estimated kernel density of the residuals, the density resembles the density of the standard normal distribution;
 
@@ -3685,7 +2881,7 @@ An additional check of the model's adequacy can be done through *worm plots*. In
 
 As we can see, the graph shown in **Figure \@ref(fig:wp1)** does indeed present points that are outside the graph's elliptical curves, which reveal that the fit was not as perfect as one would like it to be. However, as the deviations do not appear to be so numerous, and as other distributions resulted in adjustments that were extremely inferior to what was obtained through the asymmetric t distribution of type 4, we chose to consider the model found as adequate (as far as possible).
 
-```{r wp1, fig.cap="Worm plot of the selected model for the skew t type 4 distribution."}
+```{r wp1, fig.cap="Worm plot of the selected model for the skew t type 4 distribution.", fig.width = 8, fig.height = 6}
 wp(fit4_st4, ylim.all = 0.6)
 ```
 
@@ -3885,7 +3081,7 @@ plot(fit4_zaga)
 
 Furthermore, observing the worm plot shown in **Figure \@ref(fig:wp2)**, we can see that most of the points are outside the space formed between the two elliptic curves, giving us even more evidence that the model's residuals do not follow a standard normal distribution and that, therefore, the model is not suitable. Therefore, we conducted the remaining analyses using the reduced model chosen for the skew t type 4 distribution, since its residual analyses showed that that model appears to be, with its reservations, the most suitable.
 
-```{r wp2, fig.cap="Worm plot of the selected model for the ZAGA distribution."}
+```{r wp2, fig.cap="Worm plot of the selected model for the ZAGA distribution.", fig.width = 8, fig.height = 6}
 wp(fit4_zaga, ylim.all = 0.6)
 ```
 
@@ -3975,7 +3171,7 @@ df_newdata_completo <- df_newdata |>
 ```
 
 
-```{r interpretation, fig.cap="Predicted values of the fertility rate of women under 20 years of age according to HDI-M values, Primary Care Population coverage and information on the year of the pandemic. Brazil, 2018-2021."}
+```{r interpretation, fig.cap="Predicted values of the fertility rate of women under 20 years of age according to HDI-M values, Primary Care Population coverage and information on the year of the pandemic. Brazil, 2018-2021.", fig.width = 8, fig.height = 6}
 ## Plotting the predictions
 ggplot(
   data = df_newdata_completo,
@@ -4078,4 +3274,6 @@ kbl(
 ```
 
 # References
+
+
 
