@@ -1429,21 +1429,21 @@ readRDS("r_objects/d1_avaliacao_18_19.RDS") |>
 
 **Comments:**
 
-* db_index_cent: the lower the better (kmeans4, followed by kmedoids4);
-* db_index_med: the lower the better (kmeans3, followed by kmedoids3 and kmeans4);
-* dunn_index: the higher the better (kmeans4, followed by ward3 and kmeans3);
-* silh_index: the higher the better (ward2, followed by kmedoids4, kmeans4 and kmeans3);
-* ch_index_cent: the higher the better (kmeans4, followed by kmeans3);
-* ch_index_med: the higher the better (kmeans4, followed by kmeans3).
+* **Davies Bouldin (centroid):** the lower the better (kmeans4, followed by kmedoids4);
+* **Davies Bouldin (medoid):** the lower the better (kmeans3, followed by kmedoids3 and kmeans4);
+* **Dunn Index:** the higher the better (kmeans4, followed by ward3 and kmeans3);
+* **Silhouette Index:** the higher the better (ward2, followed by kmedoids4, kmeans4 and kmeans3);
+* **Calinski-Harabasz (centroid):** the higher the better (kmeans4, followed by kmeans3);
+* **Calinski-Harabasz (medoid):** the higher the better (kmeans4, followed by kmeans3).
 
-**Choice:** despite the better perfomance of K-Means with K = 4, one of its clusters contained only a few municipalities (127).
+**Choice:** despite the better performance of K-Means with K = 4, one of its clusters contained only a few municipalities (127).
 
 ```{r}
 d1_kmeans4_18_19$size
 d1_kmeans3_18_19$size
 ```
 
-Thus, the chosen method is the **K-Means with K = 3**, since it presented the best Davies-Bouldin (medoid) index, the second best Calinski-Harabasz indices and good Dunn and Silhouette indices.
+Thus, the chosen method was the **K-Means with K = 3**, since it presented the best Davies-Bouldin (medoid) index, the second best Calinski-Harabasz indices and good Dunn and Silhouette indices.
 
 ```{r}
 # Adding the column with the clusters information to the original dataframe
@@ -1511,14 +1511,14 @@ readRDS("r_objects/d1_avaliacao_20_21.RDS") |>
 
 **Comments:**
 
-* db_index_cent: the lower the better (ward4, followed by kmeans4 and kmeans3);
-* db_index_med: the lower the better (ward4, followed by kmeans4 and kmeans3);
-* dunn_index: the higher the better (ward4, followed by kmeans4 and kmeans3);
-* silh_index: the higher the better (ward2, followed by kmeans4 and kmeans3);
-* ch_index_cent: the higher the better (kmeans4, followed by ward4 and kmeans3);
-* ch_index_med: the higher the better (kmeans4, followed by ward4 and kmeans3).
+* **Davies Bouldin (centroid):** the lower the better (ward4, followed by kmeans4 and kmeans3);
+* **Davies Bouldin (medoid):** the lower the better (ward4, followed by kmeans4 and kmeans3);
+* **Dunn Index:** the higher the better (ward4, followed by kmeans4 and kmeans3);
+* **Silhouette Index:** the higher the better (ward2, followed by kmeans4 and kmeans3);
+* **Calinski-Harabasz (centroid):** the higher the better (kmeans4, followed by ward4 and kmeans3);
+* **Calinski-Harabasz (medoid):** the higher the better (kmeans4, followed by ward4 and kmeans3).
 
-**Choice:** again, despite the better perfomance of K-Means with K = 4 and Ward's method with K = 4, one of their clusters contained only a few municipalities (90 and 70, respectively).
+**Choice:** again, despite the better performance of K-Means with K = 4 and Ward's method with K = 4, one of their clusters contained only a few municipalities (90 and 70, respectively).
 
 ```{r}
 d1_kmeans4_20_21$size
@@ -1526,7 +1526,7 @@ table(d1_ward4_20_21_class)
 d1_kmeans3_18_19$size
 ```
 
-Thus, the chosen method is the **K-Means with K = 3**, since it had the best overall performance after these two.
+Thus, the chosen method was the **K-Means with K = 3**, since it had the best overall performance after these two.
 
 ```{r}
 # Adding the column with the clusters information to the original dataframe
@@ -1859,12 +1859,12 @@ readRDS("r_objects/d2_avaliacao_18_19.RDS") |>
 
 **Comments:**
 
-* db_index_cent: the lower the better (kmeans3, followed by ward3 and kmeans4)
-* db_index_med: the lower the better (kmeans3, followed by ward3)
-* dunn_index: the higher the better (kmeans3, followed by ward3)
-* silh_index: the higher the better (kmeans3, followed by kmeans4)
-* ch_index_cent: the higher the better (kmeans4, followed by kmeans3)
-* ch_index_med: the higher the better (kmeans4, followed by kmeans3)
+* **Davies Bouldin (centroid):** the lower the better (kmeans3, followed by ward3 and kmeans4)
+* **Davies Bouldin (medoid):** the lower the better (kmeans3, followed by ward3)
+* **Dunn Index:** the higher the better (kmeans4, followed by kmeans3)
+* **Silhouette Index:** the higher the better (kmeans3, followed by ward3)
+* **Calinski-Harabasz (centroid):** the higher the better (kmeans4, followed by kmeans3)
+* **Calinski-Harabasz (medoid):** the higher the better (kmeans4, followed by kmeans3)
 
 **Choice:** K-Means with K = 3, since it performed better in most of the metrics.
 
@@ -1933,14 +1933,14 @@ readRDS("r_objects/d2_avaliacao_20_21.RDS") |>
 
 **Comments:**
 
-* db_index_cent: the lower the better (kmeans4, followed by ward3 and kmeans3);
-* db_index_med: the lower the better (kmeans4, followed by kmeans3 and ward3);
-* dunn_index: the higher the better (kmeans4, followed by kmeans3);
-* silh_index: the higher the better (kmeans4, followed by kmeans3);
-* ch_index_cent: the higher the better (kmeans4, followed by kmeans3);
-* ch_index_med: the higher the better (kmeans4, followed by kmeans3).
+* **Davies Bouldin (centroid):** the lower the better (kmeans4, followed by ward3 and kmeans3);
+* **Davies Bouldin (medoid):** the lower the better (kmeans4, followed by kmeans3 and ward3);
+* **Dunn Index:** the higher the better (kmeans4, followed by kmeans3);
+* **Silhouette Index:** the higher the better (kmeans4, followed by kmeans3);
+* **Calinski-Harabasz (centroid):** the higher the better (kmeans4, followed by kmeans3);
+* **Calinski-Harabasz (medoid):** the higher the better (kmeans4, followed by kmeans3).
 
-**Choice:** even though, this time around, the K-Means with K = 4 didn't have problems with too little municipalities in a cluster, we chose the **K-Means with K = 3 ** to make it "comparable" with the other chosen clustering methods.
+**Choice:** even though, this time around, the K-Means with K = 4 didn't have problems with too few municipalities in a cluster, we chose the **K-Means with K = 3 ** to make it "comparable" with the other chosen clustering methods.
 
 ```{r}
 d2_kmeans4_20_21$size
